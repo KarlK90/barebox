@@ -5,6 +5,7 @@
  */
 
 #include <dt-bindings/clock/sophgo,cv1800.h>
+#include <dt-bindings/clock/cv181x-clock.h>
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 
@@ -192,7 +193,7 @@
 			compatible = "snps,dw-apb-uart";
 			reg = <0x04140000 0x100>;
 			interrupts = <44 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clk CLK_UART0>, <&clk CLK_APB_UART0>;
+			clocks = <&clk CV181X_CLK_UART0>, <&clk CV181X_CLK_APB_UART0>;
 			clock-names = "baudclk", "apb_pclk";
 			reg-shift = <2>;
 			reg-io-width = <4>;
