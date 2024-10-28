@@ -128,6 +128,24 @@ config BOARD_ALLWINNER_D1
 
 endif
 
+config SOC_SOPHGO_SG2000
+	bool "Sophgo SoCs"
+	depends on ARCH_RV64I
+	select HAS_DEBUG_LL
+	select HAS_CACHE
+	select OF_DMA_COHERENCY
+
+if SOC_SOPHGO_SG2000
+
+config BOARD_SOPHGO_MILKV_DUO_S
+	bool "MilkV Duo S"
+	select RISCV_S_MODE
+	select RISCV_M_MODE
+	select USE_COMPRESSED_DTB
+	def_bool y
+
+endif
+
 comment "CPU features"
 
 config SIFIVE_L2

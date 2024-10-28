@@ -1,0 +1,3 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+
+#include <riscv/sophgo/cv1812h-milkv-duo-s.dts>
