@@ -7,6 +7,7 @@
  * Framepointer assisted stack unwinder
  */
 
+#include <common.h>
 #include <linux/kernel.h>
 #include <printk.h>
 #include <asm/unwind.h>
