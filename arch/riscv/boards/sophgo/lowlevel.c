@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <common.h>
+#include "barebox-sophgo-riscv-head.h"
 #include <asm/barebox-riscv.h>
 #include <debug_ll.h>
 
-ENTRY_FUNCTION(start_milkv_duo_s, a0, a1, a2)
+ENTRY_FUNCTION_SOPHGO(start_milkv_duo_s, a0, a1, a2)
 {
 	extern char __dtb_z_cv1812h_milkv_duo_s_start[];
 
