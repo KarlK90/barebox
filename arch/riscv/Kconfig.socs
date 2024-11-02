@@ -128,10 +128,15 @@ config BOARD_ALLWINNER_D1
 
 endif
 
-config SOC_SOPHGO_SG2000
+config ARCH_SOPHGO
 	bool "Sophgo SoCs"
 	depends on ARCH_RV64I
-	select HAS_DEBUG_LL
+	select GPIOLIB
+	select COMMON_CLK
+
+config SOC_SOPHGO_SG2000
+	bool "Sophgo SoCs"
+	depends on ARCH_SOPHGO
 	select HAS_CACHE
 	select OF_DMA_COHERENCY
 
