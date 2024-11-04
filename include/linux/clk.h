@@ -436,6 +436,7 @@ struct clk_divider {
 #define CLK_DIVIDER_ALLOW_ZERO		(1 << 2)
 #define CLK_DIVIDER_HIWORD_MASK		(1 << 3)
 #define CLK_DIVIDER_READ_ONLY		(1 << 5)
+#define CLK_DIVIDER_ROUND_CLOSEST	BIT(4)
 
 #define CLK_MUX_HIWORD_MASK		(1 << 2)
 #define CLK_MUX_READ_ONLY		(1 << 3) /* mux can't be changed */
