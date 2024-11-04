@@ -1,7 +1,7 @@
 config COMMON_CLK_CVITEK
     bool "Clock driver for CVITEK SoC Family"
-    depends on ARCH_CVITEK || COMPILE_TEST
-    default ARCH_CVITEK
+    depends on ARCH_SOPHGO || COMPILE_TEST
+    default ARCH_SOPHGO
     help
        Support the clocks on CVITEK SoC Family.
 

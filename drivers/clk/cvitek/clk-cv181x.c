@@ -7,18 +7,20 @@
  * (at your option) any later version.
  */
 
+#include <common.h>
 #include <linux/clk-provider.h>
 #include <linux/clk.h>
 #include <linux/clkdev.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/of_address.h>
-#include <linux/of_device.h>
-#include <linux/platform_device.h>
+#include <linux/types.h>
+#include <of_address.h>
+// #include <linux/of_device.h>
+// #include <linux/platform_device.h>
 #include <linux/slab.h>
-#include <linux/mfd/syscon.h>
+// #include <linux/mfd/syscon.h>
 #include <linux/regmap.h>
-#include <linux/syscore_ops.h>
+// #include <linux/syscore_ops.h>
 
 #include <dt-bindings/clock/cv181x-clock.h>
 
@@ -159,6 +161,7 @@
 #define REG_CLK_G2_DIV_START		REG_CLK_CAM0_SRC_DIV
 
 #define CV181X_PLL_LOCK_TIMEOUT_MS	200
+#define CV181X_PLL_LOCK_TIMEOUT_US	(CV181X_PLL_LOCK_TIMEOUT_MS * 1000) 
 
 /* PLL status register offset */
 #define PLL_STATUS_MASK			0xFF
@@ -327,7 +330,7 @@ static unsigned long cvi_clk_flags;
 					       CV181X_CLK_FLAGS_ALL),	\
 	}
 
-const char *const cv181x_pll_parent[] = {"osc"};
+const char *const cv181x_pll_parent[] = {"osc_25m"};
 const char *const cv181x_frac_pll_parent[] = {"clk_mipimpll"};
 
 /*
@@ -360,7 +363,7 @@ static struct cv181x_pll_hw_clock cv181x_pll_clks[] = {
  */
 static struct cv181x_hw_clock cv181x_clks[] = {
 	CV181X_CLK(CV181X_CLK_A53, "clk_a53",
-		((const char *[]) {"osc", "clk_fpll", "clk_tpll", "clk_a0pll", "clk_mipimpll", "clk_mpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_tpll", "clk_a0pll", "clk_mipimpll", "clk_mpll"}),
 		REG_CLK_EN_0, 0,
 		REG_DIV_CLK_A53_0, 16, 4, 1,
 		REG_DIV_CLK_A53_1, 16, 4, 2,
@@ -369,7 +372,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_A53_0, 8,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_CPU_AXI0, "clk_cpu_axi0",
-		((const char *[]) {"osc", "clk_fpll", "clk_disppll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_disppll"}),
 		REG_CLK_EN_0, 1,
 		REG_DIV_CLK_CPU_AXI0, 16, 4, 3,
 		0, -1, 0, 0,
@@ -378,7 +381,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_CPU_AXI0, 8,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_CPU_GIC, "clk_cpu_gic",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_0, 2,
 		REG_DIV_CLK_CPU_GIC, 16, 4, 5,
 		0, -1, 0, 0,
@@ -387,7 +390,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_XTAL_A53, "clk_xtal_a53",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_0, 3,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -396,7 +399,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_TPU, "clk_tpu",
-		((const char *[]) {"osc", "clk_tpll", "clk_a0pll", "clk_mipimpll", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_tpll", "clk_a0pll", "clk_mipimpll", "clk_fpll"}),
 		REG_CLK_EN_0, 4,
 		REG_DIV_CLK_TPU, 16, 4, 3,
 		0, -1, 0, 0,
@@ -405,7 +408,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_TPU, 8,
 		0),
 	CV181X_CLK(CV181X_CLK_TPU_FAB, "clk_tpu_fab",
-		((const char *[]) {"osc", "clk_mipimpll"}),
+		((const char *[]) {"osc_25m", "clk_mipimpll"}),
 		REG_CLK_EN_0, 5,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -432,7 +435,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_RTC_25M, "clk_rtc_25m",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_0, 8,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -441,7 +444,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_TEMPSEN, "clk_tempsen",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_0, 9,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -450,7 +453,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_SARADC, "clk_saradc",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_0, 10,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -459,7 +462,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_EFUSE, "clk_efuse",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_0, 11,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -468,7 +471,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_APB_EFUSE, "clk_apb_efuse",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_0, 12,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -477,7 +480,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_DEBUG, "clk_debug",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_0, 13,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -486,7 +489,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_XTAL_MISC, "clk_xtal_misc",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_0, 14,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -504,7 +507,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_EMMC, "clk_emmc",
-		((const char *[]) {"osc", "clk_fpll", "clk_disppll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_disppll"}),
 		REG_CLK_EN_0, 16,
 		REG_DIV_CLK_EMMC, 16, 5, 15,
 		0, -1, 0, 0,
@@ -531,7 +534,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_SD0, "clk_sd0",
-		((const char *[]) {"osc", "clk_fpll", "clk_disppll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_disppll"}),
 		REG_CLK_EN_0, 19,
 		REG_DIV_CLK_SD0, 16, 5, 15,
 		0, -1, 0, 0,
@@ -558,7 +561,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_SD1, "clk_sd1",
-		((const char *[]) {"osc", "clk_fpll", "clk_disppll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_disppll"}),
 		REG_CLK_EN_0, 22,
 		REG_DIV_CLK_SD1, 16, 5, 15,
 		0, -1, 0, 0,
@@ -576,7 +579,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_SPI_NAND, "clk_spi_nand",
-		((const char *[]) {"osc", "clk_fpll", "clk_disppll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_disppll"}),
 		REG_CLK_EN_0, 24,
 		REG_DIV_CLK_SPI_NAND, 16, 5, 8,
 		0, -1, 0, 0,
@@ -585,7 +588,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_SPI_NAND, 8,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_500M_ETH0, "clk_500m_eth0",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_0, 25,
 		REG_DIV_CLK_500M_ETH0, 16, 4, 3,
 		0, -1, 0, 0,
@@ -603,7 +606,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_500M_ETH1, "clk_500m_eth1",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_0, 27,
 		REG_DIV_CLK_500M_ETH1, 16, 4, 3,
 		0, -1, 0, 0,
@@ -666,7 +669,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_SDMA_AUD0, "clk_sdma_aud0",
-		((const char *[]) {"osc", "clk_a0pll", "a24k_clk"}),
+		((const char *[]) {"osc_25m", "clk_a0pll", "a24k_clk"}),
 		REG_CLK_EN_1, 2,
 		REG_DIV_CLK_SDMA_AUD0, 16, 8, 18,
 		0, -1, 0, 0,
@@ -675,7 +678,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_SDMA_AUD0, 8,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_SDMA_AUD1, "clk_sdma_aud1",
-		((const char *[]) {"osc", "clk_a0pll", "a24k_clk"}),
+		((const char *[]) {"osc_25m", "clk_a0pll", "a24k_clk"}),
 		REG_CLK_EN_1, 3,
 		REG_DIV_CLK_SDMA_AUD1, 16, 8, 18,
 		0, -1, 0, 0,
@@ -684,7 +687,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_SDMA_AUD1, 8,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_SDMA_AUD2, "clk_sdma_aud2",
-		((const char *[]) {"osc", "clk_a0pll", "a24k_clk"}),
+		((const char *[]) {"osc_25m", "clk_a0pll", "a24k_clk"}),
 		REG_CLK_EN_1, 4,
 		REG_DIV_CLK_SDMA_AUD2, 16, 8, 18,
 		0, -1, 0, 0,
@@ -693,7 +696,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_SDMA_AUD2, 8,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_SDMA_AUD3, "clk_sdma_aud3",
-		((const char *[]) {"osc", "clk_a0pll", "a24k_clk"}),
+		((const char *[]) {"osc_25m", "clk_a0pll", "a24k_clk"}),
 		REG_CLK_EN_1, 5,
 		REG_DIV_CLK_SDMA_AUD3, 16, 8, 18,
 		0, -1, 0, 0,
@@ -711,7 +714,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_APB_WDT, "clk_apb_wdt",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_1, 7,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -765,7 +768,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_CAM0_200, "clk_cam0_200",
-		((const char *[]) {"osc", "osc", "clk_disppll"}),
+		((const char *[]) {"osc_25m", "osc_25m", "clk_disppll"}),
 		REG_CLK_EN_1, 13,
 		REG_DIV_CLK_CAM0_200, 16, 4, 1,
 		0, -1, 0, 0,
@@ -918,7 +921,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_125M_USB, "clk_125m_usb",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_1, 30,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -936,7 +939,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_12M_USB, "clk_12m_usb",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_2, 0,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -945,7 +948,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_AXI4, "clk_axi4",
-		((const char *[]) {"osc", "clk_fpll", "clk_disppll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_disppll"}),
 		REG_CLK_EN_2, 1,
 		REG_DIV_CLK_AXI4, 16, 4, 5,
 		0, -1, 0, 0,
@@ -954,7 +957,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_AXI4, 8,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_AXI6, "clk_axi6",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_2, 2,
 		REG_DIV_CLK_AXI6, 16, 4, 15,
 		0, -1, 0, 0,
@@ -963,7 +966,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_DSI_ESC, "clk_dsi_esc",
-		((const char *[]) {"osc", "clk_axi6"}),
+		((const char *[]) {"osc_25m", "clk_axi6"}),
 		REG_CLK_EN_2, 3,
 		REG_DIV_CLK_DSI_ESC, 16, 4, 5,
 		0, -1, 0, 0,
@@ -972,7 +975,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_AXI_VIP, "clk_axi_vip",
-		((const char *[]) {"osc", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
 		REG_CLK_EN_2, 4,
 		REG_DIV_CLK_AXI_VIP, 16, 4, 3,
 		0, -1, 0, 0,
@@ -981,7 +984,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_AXI_VIP, 8,
 		CLK_IGNORE_UNUSED),
 	CV181X_CLK(CV181X_CLK_SRC_VIP_SYS_0, "clk_src_vip_sys_0",
-		((const char *[]) {"osc", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
 		REG_CLK_EN_2, 5,
 		REG_DIV_CLK_SRC_VIP_SYS_0, 16, 4, 6,
 		0, -1, 0, 0,
@@ -990,7 +993,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_SRC_VIP_SYS_0, 8,
 		CLK_IGNORE_UNUSED),
 	CV181X_CLK(CV181X_CLK_SRC_VIP_SYS_1, "clk_src_vip_sys_1",
-		((const char *[]) {"osc", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
 		REG_CLK_EN_2, 6,
 		REG_DIV_CLK_SRC_VIP_SYS_1, 16, 4, 5,
 		0, -1, 0, 0,
@@ -999,7 +1002,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_SRC_VIP_SYS_1, 8,
 		CLK_IGNORE_UNUSED),
 	CV181X_CLK(CV181X_CLK_DISP_SRC_VIP, "clk_disp_src_vip",
-		((const char *[]) {"osc", "clk_disppll"}),
+		((const char *[]) {"osc_25m", "clk_disppll"}),
 		REG_CLK_EN_2, 7,
 		REG_DIV_CLK_DISP_SRC_VIP, 16, 4, 8,
 		0, -1, 0, 0,
@@ -1008,7 +1011,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_AXI_VIDEO_CODEC, "clk_axi_video_codec",
-		((const char *[]) {"osc", "clk_a0pll", "clk_mipimpll", "clk_cam1pll", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_a0pll", "clk_mipimpll", "clk_cam1pll", "clk_fpll"}),
 		REG_CLK_EN_2, 8,
 		REG_DIV_CLK_AXI_VIDEO_CODEC, 16, 4, 2,
 		0, -1, 0, 0,
@@ -1017,7 +1020,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_AXI_VIDEO_CODEC, 8,
 		CLK_IGNORE_UNUSED),
 	CV181X_CLK(CV181X_CLK_VC_SRC0, "clk_vc_src0",
-		((const char *[]) {"osc", "clk_disppll", "clk_mipimpll", "clk_cam1pll", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_disppll", "clk_mipimpll", "clk_cam1pll", "clk_fpll"}),
 		REG_CLK_EN_2, 9,
 		REG_DIV_CLK_VC_SRC0, 16, 4, 2,
 		0, -1, 0, 0,
@@ -1269,7 +1272,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_1M, "clk_1m",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_3, 5,
 		REG_DIV_CLK_1M, 16, 6, 25,
 		0, -1, 0, 0,
@@ -1278,7 +1281,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_SPI, "clk_spi",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_3, 6,
 		REG_DIV_CLK_SPI, 16, 6, 8,
 		0, -1, 0, 0,
@@ -1287,7 +1290,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_I2C, "clk_i2c",
-		((const char *[]) {"osc", "clk_axi6"}),
+		((const char *[]) {"osc_25m", "clk_axi6"}),
 		REG_CLK_EN_3, 7,
 		REG_DIV_CLK_I2C, 16, 4, 1,
 		0, -1, 0, 0,
@@ -1422,7 +1425,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_WGN, "clk_wgn",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_3, 22,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -1431,7 +1434,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_WGN0, "clk_wgn0",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_3, 23,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -1440,7 +1443,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_WGN1, "clk_wgn1",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_3, 24,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -1449,7 +1452,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_WGN2, "clk_wgn2",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_3, 25,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -1458,7 +1461,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_KEYSCAN, "clk_keyscan",
-		((const char *[]) {"osc"}),
+		((const char *[]) {"osc_25m"}),
 		REG_CLK_EN_3, 26,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -1476,7 +1479,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_VC_SRC1, "clk_vc_src1",
-		((const char *[]) {"osc", "clk_cam1pll"}),
+		((const char *[]) {"osc_25m", "clk_cam1pll"}),
 		REG_CLK_EN_3, 28,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -1485,7 +1488,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_SRC_VIP_SYS_2, "clk_src_vip_sys_2",
-		((const char *[]) {"osc", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
 		REG_CLK_EN_3, 29,
 		REG_DIV_CLK_SRC_VIP_SYS_2, 16, 4, 2,
 		0, -1, 0, 0,
@@ -1521,7 +1524,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IGNORE_UNUSED),
 	CV181X_CLK(CV181X_CLK_AUDSRC, "clk_audsrc",
-		((const char *[]) {"osc", "clk_a0pll", "a24k_clk"}),
+		((const char *[]) {"osc_25m", "clk_a0pll", "a24k_clk"}),
 		REG_CLK_EN_4, 1,
 		REG_DIV_CLK_AUDSRC, 16, 8, 18,
 		0, -1, 0, 0,
@@ -1539,7 +1542,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_VC_SRC2, "clk_vc_src2",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_4, 3,
 		0, -1, 0, 0,
 		0, -1, 0, 0,
@@ -1548,7 +1551,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		0),
 	CV181X_CLK(CV181X_CLK_PWM_SRC, "clk_pwm_src",
-		((const char *[]) {"osc", "clk_fpll", "clk_disppll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_disppll"}),
 		REG_CLK_EN_4, 4,
 		REG_DIV_CLK_PWM_SRC_0, 16, 6, 10,
 		0, -1, 0, 0,
@@ -1557,7 +1560,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_PWM_SRC_0, 8,
 		0),
 	CV181X_CLK(CV181X_CLK_AP_DEBUG, "clk_ap_debug",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_4, 5,
 		REG_DIV_CLK_AP_DEBUG, 16, 4, 5,
 		0, -1, 0, 0,
@@ -1566,7 +1569,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_SRC_RTC_SYS_0, "clk_src_rtc_sys_0",
-		((const char *[]) {"osc", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll"}),
 		REG_CLK_EN_4, 6,
 		REG_DIV_CLK_RTCSYS_SRC_0, 16, 4, 5,
 		0, -1, 0, 0,
@@ -1629,7 +1632,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		0, -1,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_C906_0, "clk_c906_0",
-		((const char *[]) {"osc", "clk_fpll", "clk_tpll", "clk_a0pll", "clk_mipimpll", "clk_mpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_tpll", "clk_a0pll", "clk_mipimpll", "clk_mpll"}),
 		REG_CLK_EN_4, 13,
 		REG_DIV_CLK_C906_0_0, 16, 4, 1,
 		REG_DIV_CLK_C906_0_1, 16, 4, 2,
@@ -1638,7 +1641,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_C906_0_0, 8,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_C906_1, "clk_c906_1",
-		((const char *[]) {"osc", "clk_fpll", "clk_tpll", "clk_a0pll", "clk_disppll", "clk_mpll"}),
+		((const char *[]) {"osc_25m", "clk_fpll", "clk_tpll", "clk_a0pll", "clk_disppll", "clk_mpll"}),
 		REG_CLK_EN_4, 14,
 		REG_DIV_CLK_C906_1_0, 16, 4, 2,
 		REG_DIV_CLK_C906_1_1, 16, 4, 2,
@@ -1647,7 +1650,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_C906_1_0, 8,
 		CLK_IS_CRITICAL),
 	CV181X_CLK(CV181X_CLK_SRC_VIP_SYS_3, "clk_src_vip_sys_3",
-		((const char *[]) {"osc", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
 		REG_CLK_EN_4, 15,
 		REG_DIV_CLK_SRC_VIP_SYS_3, 16, 4, 2,
 		0, -1, 0, 0,
@@ -1656,7 +1659,7 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		REG_DIV_CLK_SRC_VIP_SYS_3, 8,
 		CLK_IGNORE_UNUSED),
 	CV181X_CLK(CV181X_CLK_SRC_VIP_SYS_4, "clk_src_vip_sys_4",
-		((const char *[]) {"osc", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
+		((const char *[]) {"osc_25m", "clk_mipimpll", "clk_cam0pll", "clk_disppll", "clk_fpll"}),
 		REG_CLK_EN_4, 16,
 		REG_DIV_CLK_SRC_VIP_SYS_4, 16, 4, 3,
 		0, -1, 0, 0,
@@ -1711,21 +1714,21 @@ static struct cv181x_hw_clock cv181x_clks[] = {
 		CLK_IS_CRITICAL),
 };
 
-static int __init cvi_clk_flags_setup(char *arg)
-{
-	int ret;
-	unsigned long flags;
+// static int __init cvi_clk_flags_setup(char *arg)
+// {
+// 	int ret;
+// 	unsigned long flags;
 
-	ret = kstrtol(arg, 0, &flags);
-	if (ret)
-		return ret;
+// 	ret = kstrtol(arg, 0, &flags);
+// 	if (ret)
+// 		return ret;
 
-	cvi_clk_flags = flags;
-	pr_info("cvi_clk_flags = 0x%lX\n", cvi_clk_flags);
+// 	cvi_clk_flags = flags;
+// 	pr_info("cvi_clk_flags = 0x%lX\n", cvi_clk_flags);
 
-	return 1;
-}
-__setup("cvi_clk_flags=", cvi_clk_flags_setup);
+// 	return 1;
+// }
+// __setup("cvi_clk_flags=", cvi_clk_flags_setup);
 
 static unsigned long cv181x_pll_rate_calc(u32 regval, s16 post_div_sel, unsigned long parent_rate)
 {
@@ -1807,7 +1810,6 @@ static int cv181x_g6_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	u32 regval_csr;
 	u32 regval_g6_pll_status;
 	u32 g6_pll_update_status = 0;
-	ktime_t timeout;
 
 	reg_g6_pll_status = (pll_hw->pll.reg_csr & ~PLL_STATUS_MASK) + PLL_STATUS_OFFSET;
 
@@ -1818,8 +1820,10 @@ static int cv181x_g6_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 
 	/* calculate csr register */
 	ret = cv181x_g6_pll_calc_csr(parent_rate, rate, &regval_csr);
-	if (ret < 0)
-		return ret;
+	if (ret < 0){
+		pr_err("failed to calculate csr register\n");
+		goto unlock;
+	}
 
 	/* csr register */
 	writel(regval_csr, pll_hw->base + pll_hw->pll.reg_csr);
@@ -1830,22 +1834,16 @@ static int cv181x_g6_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 		g6_pll_update_status = BIT(1);
 	else if (pll_hw->pll.reg_csr == REG_FPLL_CSR)
 		g6_pll_update_status = BIT(2);
-
+	
 	/* wait for pll setting updated */
-	timeout = ktime_add_ms(ktime_get(), CV181X_PLL_LOCK_TIMEOUT_MS);
-	while (1) {
-		regval_g6_pll_status = readl(pll_hw->base + reg_g6_pll_status);
-		if ((regval_g6_pll_status & g6_pll_update_status) == 0)
-			break;
-
-		if (ktime_after(ktime_get(), timeout)) {
-			pr_err("timeout waiting for pll update, g6_pll_status = 0x%08x\n",
-			       regval_g6_pll_status);
-			break;
-		}
-		cpu_relax();
+	ret = readl_poll_timeout(pll_hw->base + reg_g6_pll_status, regval_g6_pll_status,
+			   !(regval_g6_pll_status & g6_pll_update_status), CV181X_PLL_LOCK_TIMEOUT_US);
+	if (ret < 0) {
+		pr_err("pll setting update timeout\n");
+		goto unlock;
 	}
 
+unlock:
 	if (pll_hw->lock)
 		spin_unlock_irqrestore(pll_hw->lock, flags);
 	else
@@ -1963,7 +1961,6 @@ static int cv181x_g2_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	u32 regval_ssc_ctrl;
 	u32 regval_g2_pll_status;
 	u32 g2_pll_update_status = 0;
-	ktime_t timeout;
 
 	/* pll without synthesizer */
 	if (pll_hw->pll.reg_ssc == 0)
@@ -2006,18 +2003,10 @@ static int cv181x_g2_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 		g2_pll_update_status = BIT(4);
 
 	/* wait for pll setting updated */
-	timeout = ktime_add_ms(ktime_get(), CV181X_PLL_LOCK_TIMEOUT_MS);
-	while (1) {
-		regval_g2_pll_status = readl(pll_hw->base + reg_g2_pll_status);
-		if ((regval_g2_pll_status & g2_pll_update_status) == 0)
-			break;
-
-		if (ktime_after(ktime_get(), timeout)) {
-			pr_err("timeout waiting for pll update, g2_pll_status = 0x%08x\n",
-			       regval_g2_pll_status);
-			break;
-		}
-		cpu_relax();
+	ret = readl_poll_timeout(pll_hw->base + reg_g2_pll_status, regval_g2_pll_status,
+				   !(regval_g2_pll_status & g2_pll_update_status), CV181X_PLL_LOCK_TIMEOUT_US);
+	if (ret < 0) {	
+		pr_err("pll setting update timeout\n");
 	}
 
 	if (pll_hw->lock)
@@ -2093,7 +2082,7 @@ static int cv181x_clk_register_plls(struct cv181x_pll_hw_clock *clks,
 
 		data->hw_data.hws[clks[i].pll.id] = hw;
 
-		clk_hw_register_clkdev(hw, cv181x_clk->pll.name, NULL);
+		clk_register_clkdev(clk_hw_to_clk(hw), cv181x_clk->pll.name, NULL);
 	}
 
 	return 0;
@@ -2169,7 +2158,7 @@ static unsigned long cv181x_clk_div_recalc_rate(struct clk_hw *hw,
 		val = readl(reg_addr) >> clk_hw->div[clk_sel].shift;
 		val &= div_mask(clk_hw->div[clk_sel].width);
 	}
-	rate = divider_recalc_rate(hw, parent_rate, val, NULL,
+	rate = divider_recalc_rate(clk_hw_to_clk(hw), parent_rate, val, NULL,
 				   clk_hw->div[clk_sel].flags,
 				   clk_hw->div[clk_sel].width);
 
@@ -2185,91 +2174,91 @@ static long cv181x_clk_div_round_rate(struct clk_hw *hw, unsigned long rate,
 	if ((clk_hw->mux[0].shift >= 0) && cv181x_clk_is_bypassed(clk_hw))
 		return DIV_ROUND_UP_ULL((u64)*prate, 1);
 
-	return divider_round_rate(hw, rate, prate, NULL,
+	return divider_round_rate(clk_hw_to_clk(hw), rate, prate, NULL,
 				  clk_hw->div[clk_sel].width, clk_hw->div[clk_sel].flags);
 }
 
-static long cv181x_clk_div_calc_round_rate(struct clk_hw *hw, unsigned long rate,
-					 unsigned long *prate)
-{
-	struct cv181x_hw_clock *clk_hw = to_cv181x_clk(hw);
+// static long cv181x_clk_div_calc_round_rate(struct clk_hw *hw, unsigned long rate,
+// 					 unsigned long *prate)
+// {
+// 	struct cv181x_hw_clock *clk_hw = to_cv181x_clk(hw);
 
-	if (clk_hw->div[0].shift > 0)
-		return divider_round_rate(hw, rate, prate, NULL,
-					clk_hw->div[0].width, clk_hw->div[0].flags);
-	else
-		return DIV_ROUND_UP_ULL((u64)*prate, 1);
-}
+// 	if (clk_hw->div[0].shift > 0)
+// 		return divider_round_rate(clk_hw_to_clk(hw), rate, prate, NULL,
+// 					clk_hw->div[0].width, clk_hw->div[0].flags);
+// 	else
+// 		return DIV_ROUND_UP_ULL((u64)*prate, 1);
+// }
 
-static int cv181x_clk_div_determine_rate(struct clk_hw *hw,
-				       struct clk_rate_request *req)
-{
-	struct clk_hw *current_parent;
-	unsigned long parent_rate;
-	unsigned long best_delta;
-	unsigned long best_rate;
-	u32 parent_count;
-	long rate;
-	u32 which;
+// static int cv181x_clk_div_determine_rate(struct clk_hw *hw,
+// 				       struct clk_rate_request *req)
+// {
+// 	struct clk_hw *current_parent;
+// 	unsigned long parent_rate;
+// 	unsigned long best_delta;
+// 	unsigned long best_rate;
+// 	u32 parent_count;
+// 	long rate;
+// 	u32 which;
 
-	pr_debug("%s()_%d: req->rate=%ld\n", __func__, __LINE__, req->rate);
+// 	pr_debug("%s()_%d: req->rate=%ld\n", __func__, __LINE__, req->rate);
 
-	parent_count = clk_hw_get_num_parents(hw);
-	pr_debug("%s()_%d: parent_count=%d\n", __func__, __LINE__, parent_count);
+// 	parent_count = clk_hw_get_num_parents(hw);
+// 	pr_debug("%s()_%d: parent_count=%d\n", __func__, __LINE__, parent_count);
 
-	if ((parent_count < 2) || (clk_hw_get_flags(hw) & CLK_SET_RATE_NO_REPARENT)) {
-		rate = cv181x_clk_div_round_rate(hw, req->rate, &req->best_parent_rate);
-		if (rate < 0)
-			return rate;
+// 	if ((parent_count < 2) || (clk_hw_get_flags(hw) & CLK_SET_RATE_NO_REPARENT)) {
+// 		rate = cv181x_clk_div_round_rate(hw, req->rate, &req->best_parent_rate);
+// 		if (rate < 0)
+// 			return rate;
 
-		req->rate = rate;
-		return 0;
-	}
+// 		req->rate = rate;
+// 		return 0;
+// 	}
 
-	/* Unless we can do better, stick with current parent */
-	current_parent = clk_hw_get_parent(hw);
-	parent_rate = clk_hw_get_rate(current_parent);
-	best_rate = cv181x_clk_div_calc_round_rate(hw, req->rate, &parent_rate);
-	best_delta = abs(best_rate - req->rate);
+// 	/* Unless we can do better, stick with current parent */
+// 	current_parent = clk_hw_get_parent(hw);
+// 	parent_rate = clk_hw_get_rate(current_parent);
+// 	best_rate = cv181x_clk_div_calc_round_rate(hw, req->rate, &parent_rate);
+// 	best_delta = abs(best_rate - req->rate);
 
-	pr_debug("%s()_%d: parent_rate=%ld, best_rate=%ld, best_delta=%ld\n",
-		 __func__, __LINE__, parent_rate, best_rate, best_delta);
+// 	pr_debug("%s()_%d: parent_rate=%ld, best_rate=%ld, best_delta=%ld\n",
+// 		 __func__, __LINE__, parent_rate, best_rate, best_delta);
 
-	/* Check whether any other parent clock can produce a better result */
-	for (which = 0; which < parent_count; which++) {
-		struct clk_hw *parent = clk_hw_get_parent_by_index(hw, which);
-		unsigned long delta;
-		unsigned long other_rate;
+// 	/* Check whether any other parent clock can produce a better result */
+// 	for (which = 0; which < parent_count; which++) {
+// 		struct clk_hw *parent = clk_hw_get_parent_by_index(hw, which);
+// 		unsigned long delta;
+// 		unsigned long other_rate;
 
-		pr_debug("%s()_%d: idx=%d, parent_rate=%ld, best_rate=%ld, best_delta=%ld\n",
-			 __func__, __LINE__, which, parent_rate, best_rate, best_delta);
+// 		pr_debug("%s()_%d: idx=%d, parent_rate=%ld, best_rate=%ld, best_delta=%ld\n",
+// 			 __func__, __LINE__, which, parent_rate, best_rate, best_delta);
 
-		if (!parent)
-			continue;
+// 		if (!parent)
+// 			continue;
 
-		if (parent == current_parent)
-			continue;
+// 		if (parent == current_parent)
+// 			continue;
 
-		/* Not support CLK_SET_RATE_PARENT */
-		parent_rate = clk_hw_get_rate(parent);
-		other_rate = cv181x_clk_div_calc_round_rate(hw, req->rate, &parent_rate);
-		delta = abs(other_rate - req->rate);
-		pr_debug("%s()_%d: parent_rate=%ld, other_rate=%ld, delta=%ld\n",
-			 __func__, __LINE__, parent_rate, other_rate, delta);
-		if (delta < best_delta) {
-			best_delta = delta;
-			best_rate = other_rate;
-			req->best_parent_hw = parent;
-			req->best_parent_rate = parent_rate;
-			pr_debug("%s()_%d: parent_rate=%ld, best_rate=%ld, best_delta=%ld\n",
-				 __func__, __LINE__, parent_rate, best_rate, best_delta);
-		}
-	}
+// 		/* Not support CLK_SET_RATE_PARENT */
+// 		parent_rate = clk_hw_get_rate(parent);
+// 		other_rate = cv181x_clk_div_calc_round_rate(hw, req->rate, &parent_rate);
+// 		delta = abs(other_rate - req->rate);
+// 		pr_debug("%s()_%d: parent_rate=%ld, other_rate=%ld, delta=%ld\n",
+// 			 __func__, __LINE__, parent_rate, other_rate, delta);
+// 		if (delta < best_delta) {
+// 			best_delta = delta;
+// 			best_rate = other_rate;
+// 			req->best_parent_hw = parent;
+// 			req->best_parent_rate = parent_rate;
+// 			pr_debug("%s()_%d: parent_rate=%ld, best_rate=%ld, best_delta=%ld\n",
+// 				 __func__, __LINE__, parent_rate, best_rate, best_delta);
+// 		}
+// 	}
 
-	req->rate = best_rate;
+// 	req->rate = best_rate;
 
-	return 0;
-}
+// 	return 0;
+// }
 
 static int cv181x_clk_div_set_rate(struct clk_hw *hw, unsigned long rate,
 				 unsigned long parent_rate)
@@ -2368,12 +2357,12 @@ static int cv181x_clk_gate_is_enabled(struct clk_hw *hw)
 	reg &= BIT(clk_hw->gate.shift);
 
 	if (clk_hw_get_flags(hw) & CLK_IGNORE_UNUSED)
-		return __clk_get_enable_count(hw->clk) ? (reg ? 1 : 0) : 0;
+		return __clk_get_enable_count(clk_hw_to_clk(hw)) ? (reg ? 1 : 0) : 0;
 	else
 		return reg ? 1 : 0;
 }
 
-static u8 cv181x_clk_mux_get_parent(struct clk_hw *hw)
+static int cv181x_clk_mux_get_parent(struct clk_hw *hw)
 {
 	struct cv181x_hw_clock *clk_hw = to_cv181x_clk(hw);
 	u8 clk_sel = cv181x_clk_get_clk_sel(clk_hw);
@@ -2431,6 +2420,7 @@ static int cv181x_clk_mux_set_parent(struct clk_hw *hw, u8 index)
 	unsigned long flags = 0;
 	void __iomem *reg_addr;
 	unsigned int reg;
+	int _index = index;
 
 	if (clk_hw->lock)
 		spin_lock_irqsave(clk_hw->lock, flags);
@@ -2447,7 +2437,7 @@ static int cv181x_clk_mux_set_parent(struct clk_hw *hw, u8 index)
 	 * +-------+-------+-------+-------+-------+-------+
 	 */
 
-	if (index == 0) {
+	if (_index == 0) {
 		if (clk_hw->mux[0].shift >= 0) {
 			// set bypass
 			reg_addr = clk_hw->base + clk_hw->mux[0].reg;
@@ -2463,7 +2453,7 @@ static int cv181x_clk_mux_set_parent(struct clk_hw *hw, u8 index)
 			writel(reg, reg_addr);
 			goto unlock_release;
 		}
-	} else if (index == 1) {
+	} else if (_index == 1) {
 		if (clk_hw->mux[0].shift >= 0) {
 			// clear bypass
 			reg_addr = clk_hw->base + clk_hw->mux[0].reg;
@@ -2479,7 +2469,7 @@ static int cv181x_clk_mux_set_parent(struct clk_hw *hw, u8 index)
 				writel(reg, reg_addr);
 				goto unlock_release;
 			} else {
-				index--;
+				_index--;
 			}
 		} else if (clk_hw->mux[1].shift >= 0) {
 			// set clk_sel to DIV_0
@@ -2487,7 +2477,7 @@ static int cv181x_clk_mux_set_parent(struct clk_hw *hw, u8 index)
 			reg = readl(reg_addr);
 			reg |= 1 << clk_hw->mux[1].shift;
 			writel(reg, reg_addr);
-			index--;
+			_index--;
 		}
 	} else {
 		if (clk_hw->mux[0].shift >= 0) {
@@ -2496,7 +2486,7 @@ static int cv181x_clk_mux_set_parent(struct clk_hw *hw, u8 index)
 			reg = readl(reg_addr);
 			reg &= ~(0x1 << clk_hw->mux[0].shift);
 			writel(reg, reg_addr);
-			index--;
+			_index--;
 		}
 
 		if (clk_hw->mux[1].shift >= 0) {
@@ -2505,12 +2495,12 @@ static int cv181x_clk_mux_set_parent(struct clk_hw *hw, u8 index)
 			reg = readl(reg_addr);
 			reg |= 1 << clk_hw->mux[1].shift;
 			writel(reg, reg_addr);
-			index--;
+			_index--;
 		}
 	}
 
-	if (index < 0) {
-		pr_err("index is negative(%d)\n", index);
+	if (_index < 0) {
+		pr_err("_index is negative(%d)\n", _index);
 		goto unlock_release;
 	}
 
@@ -2539,7 +2529,7 @@ static const struct clk_ops cv181x_clk_ops = {
 	// div
 	.recalc_rate = cv181x_clk_div_recalc_rate,
 	.round_rate = cv181x_clk_div_round_rate,
-	.determine_rate = cv181x_clk_div_determine_rate,
+	// .determine_rate = cv181x_clk_div_determine_rate,
 	.set_rate = cv181x_clk_div_set_rate,
 
 	//mux
@@ -2551,7 +2541,6 @@ static struct clk_hw *cv181x_register_clk(struct cv181x_hw_clock *cv181x_clk,
 					  void __iomem *sys_base)
 {
 	struct clk_hw *hw;
-	struct clk_init_data init;
 	int err;
 
 	cv181x_clk->gate.flags = 0;
@@ -2565,13 +2554,13 @@ static struct clk_hw *cv181x_register_clk(struct cv181x_hw_clock *cv181x_clk,
 	cv181x_clk->base = sys_base;
 	cv181x_clk->lock = &cv181x_clk_lock;
 
-	if (cvi_clk_flags) {
-		/* copy clk_init_data for modification */
-		memcpy(&init, cv181x_clk->hw.init, sizeof(init));
+	// if (cvi_clk_flags) {
+	// 	/* copy clk_init_data for modification */
+	// 	memcpy(&init, cv181x_clk->hw.init, sizeof(init));
 
-		init.flags |= cvi_clk_flags;
-		cv181x_clk->hw.init = &init;
-	}
+	// 	init.flags |= cvi_clk_flags;
+	// 	cv181x_clk->hw.init = &init;
+	// }
 
 	hw = &cv181x_clk->hw;
 	err = clk_hw_register(NULL, hw);
@@ -2608,7 +2597,7 @@ static int cv181x_register_clks(struct cv181x_hw_clock *clks,
 			goto err_clk;
 		}
 		data->hw_data.hws[clks[i].id] = hw;
-		clk_hw_register_clkdev(hw, cv181x_clk->name, NULL);
+		clk_register_clkdev(clk_hw_to_clk(hw), cv181x_clk->name, NULL);
 	}
 
 	return 0;
@@ -2620,12 +2609,12 @@ err_clk:
 	return PTR_ERR(hw);
 }
 
-static const struct of_device_id cvi_clk_match_ids_tables[] = {
-	{
-		.compatible = "cvitek,cv181x-clk",
-	},
-	{}
-};
+// static const struct of_device_id cvi_clk_match_ids_tables[] = {
+// 	{
+// 		.compatible = "cvitek,cv181x-clk",
+// 	},
+// 	{}
+// };
 
 #ifdef CONFIG_PM_SLEEP
 static int cv181x_clk_suspend(void)

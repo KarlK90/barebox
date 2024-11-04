@@ -82,6 +82,7 @@ config COMMON_CLK_GPIO
 	default y
 	depends on COMMON_CLK_OF_PROVIDER
 
+source "drivers/clk/cvitek/Kconfig"
 source "drivers/clk/sifive/Kconfig"
 
 endif
