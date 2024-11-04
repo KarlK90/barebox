@@ -327,5 +327,11 @@
 			reg = <0x74000000 0x10000>;
 			interrupts-extended = <&cpu0_intc 3>, <&cpu0_intc 7>;
 		};
+
+		ethernet0: ethernet@4070000 {
+			compatible = "cvitek,ethernet";
+			reg = <0x4070000 0x10000>;
+			phy-mode = "rmii";
+		};
 	};
 };
