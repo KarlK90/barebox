@@ -19,6 +19,11 @@ config AT803X_PHY
 	help
 	  Currently supports the AT8030, AT8031 and AT8035 PHYs.
 
+config CIVTEK_PHY
+	bool "Driver for Civtek PHY"
+	help
+	  Currently supports CV182XA
+
 config DAVICOM_PHY
 	bool "Driver for Davicom PHYs"
 	help
