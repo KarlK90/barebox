@@ -16,6 +16,10 @@ static struct dw_eth_drvdata dwmac_370a_drvdata = {
 	.enh_desc = 1,
 };
 
+static struct dw_eth_drvdata dwmac_cvitek_drvdata = {
+	.enh_desc = 0,
+};
+
 static int dwc_ether_probe(struct device *dev)
 {
 	struct dw_eth_dev *dwc;
@@ -31,6 +35,9 @@ static __maybe_unused struct of_device_id dwc_ether_compatible[] = {
 	}, {
 		.compatible = "snps,dwmac-3.72a",
 		.data = &dwmac_370a_drvdata,
+	}, {
+		.compatible = "cvitek,ethernet",
+		.data = &dwmac_cvitek_drvdata,
 	}, {
 		/* sentinel */
 	}
