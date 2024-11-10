@@ -132,6 +132,8 @@ static void tx_descs_init(struct eth_device *dev)
 	/* Correcting the last pointer of the chain */
 	desc_p->dmamac_next = tx_dma_addr(priv, &desc_table_p[0]);
 
+	dma_map_single(dev->parent, desc_table_p, CONFIG_TX_DESCR_NUM * sizeof(struct dmamacdescr), DMA_BIDIRECTIONAL);
+
 	writel(desc_p->dmamac_next, &dma_p->txdesclistaddr);
 	priv->tx_currdescnum = 0;
 }
@@ -156,13 +158,14 @@ static void rx_descs_init(struct eth_device *dev)
 		else
 			desc_p->dmamac_cntl |= DESC_RXCTRL_RXCHAIN;
 
-		dma_sync_single_for_device(dev->parent, desc_p->dmamac_addr,
-					CONFIG_ETH_BUFSIZE, DMA_FROM_DEVICE);
 		desc_p->txrx_status = DESC_RXSTS_OWNBYDMA;
+
 	}
 
 	/* Correcting the last pointer of the chain */
 	desc_p->dmamac_next = rx_dma_addr(priv, &desc_table_p[0]);
+
+	dma_map_single(dev->parent, desc_table_p, CONFIG_RX_DESCR_NUM * sizeof(struct dmamacdescr), DMA_BIDIRECTIONAL);
 
 	writel(desc_p->dmamac_next, &dma_p->rxdesclistaddr);
 	priv->rx_currdescnum = 0;
@@ -283,6 +286,10 @@ static int dwc_ether_send(struct eth_device *dev, void *packet, int length)
 	struct dmamacdescr *desc_p = &priv->tx_mac_descrtable_cpu[desc_num];
 
 	owndma = priv->enh_desc ? DESC_ENH_TXSTS_OWNBYDMA : DESC_TXSTS_OWNBYDMA;
+
+	dma_sync_single_for_cpu(dev->parent,(dma_addr_t)desc_p,
+		sizeof(*desc_p), DMA_FROM_DEVICE);
+
 	/* Check if the descriptor is owned by CPU */
 	if (desc_p->txrx_status & owndma) {
 		dev_err(&dev->dev, "CPU not owner of tx frame\n");
@@ -316,10 +323,12 @@ static int dwc_ether_send(struct eth_device *dev, void *packet, int length)
 
 	priv->tx_currdescnum = desc_num;
 
+	/* Flush modified buffer descriptor */
+	dma_sync_single_for_device(dev->parent,(dma_addr_t)desc_p, sizeof(*desc_p),
+				DMA_TO_DEVICE);
+
 	/* Start the transmission */
 	writel(POLL_DATA, &dma_p->txpolldemand);
-	dma_sync_single_for_cpu(dev->parent, desc_p->dmamac_addr, length,
-				DMA_TO_DEVICE);
 
 	return 0;
 }
@@ -329,11 +338,15 @@ static void dwc_ether_rx(struct eth_device *dev)
 	struct dw_eth_dev *priv = dev->priv;
 	u32 desc_num = priv->rx_currdescnum;
 	struct dmamacdescr *desc_p = &priv->rx_mac_descrtable_cpu[desc_num];
-
-	u32 status = desc_p->txrx_status;
+	u32 status;
 	int length = 0;
 
-	/* Check  if the owner is the CPU */
+	dma_sync_single_for_cpu(dev->parent,(dma_addr_t)desc_p,
+			sizeof(*desc_p), DMA_FROM_DEVICE);
+
+	status = desc_p->txrx_status;
+
+	/* Check if the owner is the CPU */
 	if (status & DESC_RXSTS_OWNBYDMA)
 		return;
 
@@ -372,6 +385,10 @@ static void dwc_ether_rx(struct eth_device *dev)
 	 * the next one
 	 */
 	desc_p->txrx_status |= DESC_RXSTS_OWNBYDMA;
+
+	/* Flush modified buffer descriptor */
+	dma_sync_single_for_device(dev->parent,(dma_addr_t)desc_p,
+			sizeof(*desc_p), DMA_TO_DEVICE);
 
 	/* Test the wrap-around condition. */
 	if (++desc_num >= CONFIG_RX_DESCR_NUM)
@@ -500,8 +517,11 @@ struct dw_eth_dev *dwc_drv_probe(struct device *dev)
 	if (!priv->rx_mac_descrtable_cpu)
 		return ERR_PTR(-EFAULT);
 
-	priv->txbuffs = dma_alloc(TX_TOTAL_BUFSIZE);
-	priv->rxbuffs = dma_alloc(RX_TOTAL_BUFSIZE);
+	priv->txbuffs = dma_zalloc(TX_TOTAL_BUFSIZE);
+	dma_map_single(dev, priv->txbuffs, TX_TOTAL_BUFSIZE, DMA_TO_DEVICE);
+
+	priv->rxbuffs = dma_zalloc(RX_TOTAL_BUFSIZE);
+	dma_map_single(dev, priv->rxbuffs, RX_TOTAL_BUFSIZE, DMA_FROM_DEVICE);
 
 	edev = &priv->netdev;
 	miibus = &priv->miibus;

@@ -159,7 +159,7 @@ struct dmamacdescr {
 	u32 dmamac_cntl;
 	u32 dmamac_addr;
 	u32 dmamac_next;
-};
+} __packed __aligned(DMA_ALIGNMENT);
 
 #define dmamac_addr(descr) (phys_to_virt((descr)->dmamac_addr))
 
