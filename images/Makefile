@@ -127,6 +127,10 @@ $(obj)/%.itb: $(obj)/%.its FORCE
 $(obj)/%.fit: $(obj)/$$(FILE_$$(@F)) $(dtstree)/dtbs-list FORCE
 	$(call if_changed,fit)
 
+.SECONDEXPANSION:
+$(obj)/%.fit: $(obj)/$$(FILE_$$(@F)) $(dtstree)/dtbs-list FORCE
+	$(call if_changed,fit)
+
 $(obj)/piggy.o: $(obj)/barebox.z FORCE
 
 $(obj)/sha_sum.o: $(obj)/barebox.sha.bin FORCE
