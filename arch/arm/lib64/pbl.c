@@ -7,7 +7,7 @@
 void udelay(unsigned long us)
 {
 	unsigned long cntfrq = get_cntfrq();
-	unsigned long ticks = (us * cntfrq) / 1000000;
+	unsigned long ticks = (us * cntfrq) / MSECOND;
 	unsigned long start = get_cntpct();
 
 	while ((long)(start + ticks - get_cntpct()) > 0);
@@ -15,5 +15,19 @@ void udelay(unsigned long us)
 
 void mdelay(unsigned long ms)
 {
-	udelay(ms * 1000);
+	udelay(ms * USECOND);
+}
+
+uint64_t get_time_ns(void)
+{
+	return get_cntpct() * SECOND / get_cntfrq();
+}
+
+int is_timeout(uint64_t start, uint64_t time_offset_ns)
+{
+	if ((int64_t)(start + time_offset_ns - get_time_ns()) < 0) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
