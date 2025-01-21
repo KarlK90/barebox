@@ -77,6 +77,9 @@ config PBL_VERIFY_PIGGY
 config PBL_CLOCKSOURCE
 	bool
 
+config PBL_TIMER
+	bool
+
 config BOARD_GENERIC_DT
 	bool
 	select LIBFDT

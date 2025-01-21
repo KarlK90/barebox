@@ -10,4 +10,4 @@ obj-pbl-y   += runtime-offset.o
 obj-pbl-y   += setjmp.o
 obj-pbl-y   += reloc.o
 obj-y += io.o
-pbl-y	+= div0.o delay.o
+pbl-y	+= div0.o
