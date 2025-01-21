@@ -26,6 +26,9 @@ config PBL_SINGLE_IMAGE
 	depends on !HAVE_PBL_MULTI_IMAGES
 	default y
 
+config HAS_PBL_CLOCKSOURCE
+	bool
+
 if PBL_IMAGE
 
 config USE_COMPRESSED_DTB
