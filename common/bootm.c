@@ -276,7 +276,7 @@ int bootm_load_os(struct image_data *data, unsigned long load_address)
 const struct resource *
 bootm_load_initrd(struct image_data *data, unsigned long load_address)
 {
-	struct resource *res;
+	struct resource *res = NULL;
 	const char *initrd, *initrd_part = NULL;
 	enum filetype type = filetype_unknown;
 	int ret;
@@ -742,10 +742,8 @@ int bootm_boot(struct bootm_data *bootm_data)
 	bootm_get_override(&data->oftree_file, bootm_overrides.oftree_file);
 
 	if (bootm_get_override(&data->initrd_file, bootm_overrides.initrd_file)) {
-		if (data->initrd_res) {
-			release_sdram_region(data->initrd_res);
-			data->initrd_res = NULL;
-		}
+		release_sdram_region(data->initrd_res);
+		data->initrd_res = NULL;
 	}
 
 	ret = handler->bootm(data);
@@ -753,14 +751,10 @@ int bootm_boot(struct bootm_data *bootm_data)
 		pr_info("Dryrun. Aborted\n");
 
 err_out:
-	if (data->os_res)
-		release_sdram_region(data->os_res);
-	if (data->initrd_res)
-		release_sdram_region(data->initrd_res);
-	if (data->oftree_res)
-		release_sdram_region(data->oftree_res);
-	if (data->tee_res)
-		release_sdram_region(data->tee_res);
+	release_sdram_region(data->os_res);
+	release_sdram_region(data->initrd_res);
+	release_sdram_region(data->oftree_res);
+	release_sdram_region(data->tee_res);
 	if (image_is_uimage(data))
 		bootm_close_uimage(data);
 	if (data->os_fit)

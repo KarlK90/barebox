@@ -316,6 +316,8 @@ struct resource *reserve_sdram_region(const char *name, resource_size_t start,
 
 int release_sdram_region(struct resource *res)
 {
+	if (!res)
+		return 0;
 	return release_region(res);
 }
 
