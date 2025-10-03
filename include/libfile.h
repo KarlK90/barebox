@@ -4,6 +4,7 @@
 
 #include <linux/types.h>
 #include <linux/compiler.h>
+#include <linux/ioport.h>
 #include <linux/bits.h>
 
 struct resource;
@@ -55,6 +56,7 @@ char *make_temp(const char *template);
 
 int cache_file(const char *path, char **newpath);
 
-struct resource *file_to_sdram(const char *filename, unsigned long adr);
+struct resource *file_to_sdram(const char *filename, unsigned long adr,
+			       enum resource_memtype);
 
 #endif /* __LIBFILE_H */

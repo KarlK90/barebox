@@ -765,7 +765,8 @@ int cache_file(const char *path, char **newpath)
 
 #define BUFSIZ	(PAGE_SIZE * 32)
 
-struct resource *file_to_sdram(const char *filename, unsigned long adr)
+struct resource *file_to_sdram(const char *filename, unsigned long adr,
+			       enum resource_memtype memtype)
 {
 	struct resource *res;
 	unsigned memattrs;
@@ -786,7 +787,7 @@ struct resource *file_to_sdram(const char *filename, unsigned long adr)
 	while (1) {
 
 		res = request_sdram_region("image", adr, size,
-					   MEMTYPE_LOADER_CODE, memattrs);
+					   memtype, memattrs);
 		if (!res)
 			goto out;
 
@@ -813,7 +814,7 @@ struct resource *file_to_sdram(const char *filename, unsigned long adr)
 		if (now < BUFSIZ) {
 			release_sdram_region(res);
 			res = request_sdram_region("image", adr, ofs + now,
-						   MEMTYPE_LOADER_CODE, memattrs);
+						   memtype, memattrs);
 			goto out;
 		}
 
