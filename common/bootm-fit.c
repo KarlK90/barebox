@@ -33,9 +33,15 @@ int bootm_load_fit_os(struct image_data *data, unsigned long load_address)
 	return 0;
 }
 
-static bool fitconfig_has_ramdisk(struct image_data *data)
+static bool fitconfig_count_ramdisks(struct image_data *data)
 {
-	return fit_has_image(data->os_fit, data->fit_config, "ramdisk");
+	int nramdisks;
+
+	nramdisks = fit_count_images(data->os_fit, data->fit_config, "ramdisk");
+	if (nramdisks < 0)
+		return 0;
+
+	return nramdisks;
 }
 
 /*
@@ -55,9 +61,14 @@ struct resource *bootm_load_fit_initrd(struct image_data *data, unsigned long lo
 	struct resource *res;
 	const void *initrd;
 	unsigned long initrd_size;
-	int ret;
+	int nramdisks, ret;
 
-	if (!fitconfig_has_ramdisk(data))
+	nramdisks = fitconfig_count_ramdisks(data);
+	if (nramdisks > 1) {
+		pr_err("Multiple %s entries not supported\n", "ramdisk");
+		return ERR_PTR(-EINVAL);
+	}
+	if (!nramdisks)
 		return NULL;
 
 	ret = fit_open_image(data->os_fit, data->fit_config, "ramdisk",

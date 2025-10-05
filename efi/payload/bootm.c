@@ -36,18 +36,11 @@
 
 static bool ramdisk_is_fit(struct image_data *data)
 {
-	struct stat st;
-
 	if (!IS_ENABLED(CONFIG_BOOTM_FITIMAGE))
 		return false;
 
 	if (bootm_signed_images_are_forced())
 		return true;
-
-	if (data->initrd_files) {
-		if (!stat(data->initrd_files, &st) && st.st_size > 0)
-			return false;
-	}
 
 	return data->os_fit ? fit_has_image(data->os_fit,
 			data->fit_config, "ramdisk") > 0 : false;
@@ -125,6 +118,7 @@ static int efi_load_ramdisk(struct image_data *data, void **initrd)
 {
 	unsigned long initrd_size;
 	void *initrd_mem;
+	struct stat st;
 	int ret;
 
 	if (ramdisk_is_fit(data)) {
@@ -135,8 +129,13 @@ static int efi_load_ramdisk(struct image_data *data, void **initrd)
 			return ret;
 		}
 	} else {
-		if (!data->initrd_files)
-			return 0;
+		if (strpbrk_unescaped(data->initrd_files, " ")) {
+			pr_err("Multiple initrd entries not supported\n");
+			return -EINVAL;
+		}
+
+		if (!stat(data->initrd_files, &st) && st.st_size > 0)
+			return -ENOENT;
 
 		pr_info("Loading ramdisk from '%s'\n", data->initrd_files);
 
