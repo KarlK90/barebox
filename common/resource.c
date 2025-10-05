@@ -111,11 +111,16 @@ int release_region(struct resource *res)
 /*
  * merge two adjacent sibling regions.
  */
-int __merge_regions(const char *name,
-		struct resource *resa, struct resource *resb)
+struct resource *__merge_regions(const char *name,
+				 struct resource *resa, struct resource *resb)
 {
+	if (!resa)
+		return resb;
+	if (!resb)
+		return resa;
+
 	if (!resource_adjacent(resa, resb))
-		return -EINVAL;
+		return NULL;
 
 	if (resa->start < resb->start)
 		resa->end = resb->end;
@@ -126,7 +131,7 @@ int __merge_regions(const char *name,
 	resa->name = xstrdup_const(name);
 	release_region(resb);
 
-	return 0;
+	return resa;
 }
 
 /* The root resource for the whole memory-mapped io space */

@@ -204,8 +204,8 @@ struct resource *__request_region(struct resource *parent,
 				  resource_size_t start, resource_size_t end,
 				  const char *name, unsigned flags);
 
-int __merge_regions(const char *name,
-		struct resource *resa, struct resource *resb);
+struct resource *__merge_regions(const char *name,
+				 struct resource *resa, struct resource *resb);
 
 int release_region(struct resource *res);
 
