@@ -139,8 +139,8 @@ static int do_bootm_efi(struct image_data *data)
 	 */
 	boot_header->type_of_loader = 0x13;
 
-	if (data->initrd_file) {
-		tmp = read_file(data->initrd_file, &size);
+	if (data->initrd_files) {
+		tmp = read_file(data->initrd_files, &size);
 		initrd = xmemalign(PAGE_SIZE, PAGE_ALIGN(size));
 		memcpy(initrd, tmp, size);
 		memset(initrd + size, 0, PAGE_ALIGN(size) - size);
@@ -161,7 +161,7 @@ static int do_bootm_efi(struct image_data *data)
 	printf("Booting kernel via handover");
 	if (bootm_verbose(data)) {
 		printf("at 0x%p", loaded_image->image_base);
-		if (data->initrd_file)
+		if (data->initrd_files)
 			printf(", initrd at 0x%08x",
 			       boot_header->ramdisk_image);
 	}

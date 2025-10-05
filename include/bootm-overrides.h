@@ -4,7 +4,7 @@
 
 struct bootm_overrides {
 	const char *oftree_file;
-	const char *initrd_file;
+	const char *initrd_files;
 };
 
 #ifdef CONFIG_BOOT_OVERRIDE
@@ -23,8 +23,8 @@ static inline void bootm_merge_overrides(struct bootm_overrides *dst,
 		return;
 	if (src->oftree_file)
 		dst->oftree_file = src->oftree_file;
-	if (src->initrd_file)
-		dst->initrd_file = src->initrd_file;
+	if (src->initrd_files)
+		dst->initrd_files = src->initrd_files;
 }
 
 #endif

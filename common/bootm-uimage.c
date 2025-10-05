@@ -41,8 +41,8 @@ static int bootm_open_initrd_uimage(struct image_data *data)
 {
 	int ret;
 
-	if (strcmp(data->os_file, data->initrd_file)) {
-		data->initrd = uimage_open(data->initrd_file);
+	if (strcmp(data->os_file, data->initrd_files)) {
+		data->initrd = uimage_open(data->initrd_files);
 		if (!data->initrd)
 			return -EINVAL;
 
@@ -98,7 +98,7 @@ int bootm_open_oftree_uimage(struct image_data *data, size_t *size,
 
 	if (!strcmp(data->os_file, oftree)) {
 		of_handle = data->os;
-	} else if (!strcmp(data->initrd_file, oftree)) {
+	} else if (!strcmp(data->initrd_files, oftree)) {
 		of_handle = data->initrd;
 	} else {
 		of_handle = uimage_open(oftree);

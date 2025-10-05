@@ -44,8 +44,8 @@ static bool ramdisk_is_fit(struct image_data *data)
 	if (bootm_signed_images_are_forced())
 		return true;
 
-	if (data->initrd_file) {
-		if (!stat(data->initrd_file, &st) && st.st_size > 0)
+	if (data->initrd_files) {
+		if (!stat(data->initrd_files, &st) && st.st_size > 0)
 			return false;
 	}
 
@@ -135,16 +135,16 @@ static int efi_load_ramdisk(struct image_data *data, void **initrd)
 			return ret;
 		}
 	} else {
-		if (!data->initrd_file)
+		if (!data->initrd_files)
 			return 0;
 
-		pr_info("Loading ramdisk from '%s'\n", data->initrd_file);
+		pr_info("Loading ramdisk from '%s'\n", data->initrd_files);
 
-		initrd_mem = read_file(data->initrd_file, &initrd_size);
+		initrd_mem = read_file(data->initrd_files, &initrd_size);
 		if (!initrd_mem) {
 			ret = -errno;
 			pr_err("Failed to read initrd from file '%s': %m\n",
-			       data->initrd_file);
+			       data->initrd_files);
 			return ret;
 		}
 	}

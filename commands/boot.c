@@ -47,7 +47,7 @@ static int boot_add_override(struct bootm_overrides *overrides, char *var)
 	} else if (!strcmp(var, "bootm.oftree")) {
 		overrides->oftree_file = val;
 	} else if (!strcmp(var, "bootm.initrd")) {
-		overrides->initrd_file = val;
+		overrides->initrd_files = val;
 	} else {
 		return -EINVAL;
 	}

@@ -58,7 +58,7 @@ static int do_bootm(int argc, char *argv[])
 			data.initrd_address = simple_strtoul(optarg, NULL, 0);
 			break;
 		case 'r':
-			data.initrd_file = optarg;
+			data.initrd_files = optarg;
 			break;
 #endif
 		case 'a':

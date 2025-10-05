@@ -101,7 +101,7 @@ static int blspec_boot(struct bootentry *be, int verbose, int dryrun)
 
 	bootm_data_init_defaults(&data);
 	data.dryrun = max_t(int, dryrun, data.dryrun);
-	data.os_file = data.oftree_file = data.initrd_file = NULL;
+	data.os_file = data.oftree_file = data.initrd_files = NULL;
 	data.verbose = max(verbose, data.verbose);
 
 	devicetree = blspec_entry_var_get(entry, "devicetree");
@@ -124,7 +124,7 @@ static int blspec_boot(struct bootentry *be, int verbose, int dryrun)
 		of_register_fixup(blspec_overlay_fixup, entry);
 
 	if (initrd)
-		data.initrd_file = basprintf("%s/%s", abspath, initrd);
+		data.initrd_files = basprintf("%s/%s", abspath, initrd);
 
 	globalvar_add_simple("linux.bootargs.dyn.bootentries", options);
 
@@ -168,7 +168,7 @@ static int blspec_boot(struct bootentry *be, int verbose, int dryrun)
 
 err_out:
 	free((char *)data.oftree_file);
-	free((char *)data.initrd_file);
+	free((char *)data.initrd_files);
 	free((char *)data.os_file);
 
 	return ret;
