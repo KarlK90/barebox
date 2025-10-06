@@ -7,6 +7,7 @@
 
 void *mempcpy(void *dest, const void *src, size_t count);
 int strtobool(const char *str, int *val);
+char *strpbrk_unescaped(const char *cs, const char *ct);
 char *strsep_unescaped(char **, const char *, char *);
 char **strtokv(char *str, const char *delim, int *cntp);
 char *stpcpy(char *dest, const char *src);

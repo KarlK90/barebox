@@ -512,6 +512,32 @@ char * strpbrk(const char * cs,const char * ct)
 #endif
 EXPORT_SYMBOL(strpbrk);
 
+char *strpbrk_unescaped(const char *cs, const char *ct)
+{
+	const char *sc1, *sc2;
+	bool escaped = false;
+
+	for( sc1 = cs; *sc1 != '\0'; ++sc1) {
+		if (!escaped && *sc1 == '\\') {
+			escaped = true;
+			continue;
+		}
+
+		for( sc2 = ct; *sc2 != '\0'; ++sc2) {
+			if (*sc1 == *sc2) {
+				if (escaped)
+					break;
+				return (char *) sc1;
+			}
+		}
+
+		escaped = false;
+	}
+	return NULL;
+}
+#endif
+EXPORT_SYMBOL(strpbrk_unescaped);
+
 #ifndef __HAVE_ARCH_STRSEP
 /**
  * strsep - Split a string into tokens
