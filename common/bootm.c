@@ -280,7 +280,7 @@ bootm_load_initrd(struct image_data *data, unsigned long load_address)
 {
 	struct resource *res = NULL;
 	const char *initrd, *initrd_part = NULL;
-	enum filetype type = filetype_unknown;
+	char *files;
 	int ret;
 
 	if (!IS_ENABLED(CONFIG_BOOTM_INITRD))
@@ -294,40 +294,59 @@ bootm_load_initrd(struct image_data *data, unsigned long load_address)
 
 	bootm_get_override(&data->initrd_files, bootm_overrides.initrd_files);
 
-	initrd = data->initrd_files;
-	if (initrd) {
-		ret = file_name_detect_type(initrd, &type);
-		if (ret) {
-			pr_err("could not open initrd \"%s\": %pe\n",
-			       initrd, ERR_PTR(ret));
-			return ERR_PTR(ret);
+	files = xstrdup(data->initrd_files ?: "@");
+
+	while ((initrd = strsep_unescaped(&files, " ", NULL))) {
+		enum filetype type = filetype_unknown;
+
+		if (*initrd == '\0') {
+			continue;
+		} else if (*initrd == '@') {
+			if (initrd[1]) {
+				pr_err("Unsupported initrd specifier '%s'\n",
+				       initrd);
+				return ERR_PTR(-EINVAL);
+			}
+
+			initrd = NULL;
+		} else {
+			ret = file_name_detect_type(initrd, &type);
+			if (ret) {
+				pr_err("could not open initrd \"%s\": %pe\n",
+				       initrd, ERR_PTR(ret));
+				return ERR_PTR(ret);
+			}
 		}
+
+		if (type == filetype_uimage) {
+			res = bootm_load_uimage_initrd(data, load_address);
+
+		} else if (initrd) {
+			res = file_to_sdram(initrd, load_address,
+					    MEMTYPE_LOADER_DATA) ?: ERR_PTR(-ENOMEM);
+
+		} else if (data->os_fit) {
+			res = bootm_load_fit_initrd(data, load_address);
+			type = filetype_fit;
+
+		}
+
+		if (IS_ERR(res))
+			return res;
+		if (!res)
+			continue;
+
+		data->initrd_res = __merge_regions("initrd", data->initrd_res, res);
+		load_address += resource_size(data->initrd_res);
 	}
 
-	if (type == filetype_uimage) {
-		res = bootm_load_uimage_initrd(data, load_address);
-		if (data->initrd->header.ih_type == IH_TYPE_MULTI)
-			initrd_part = data->initrd_part;
+	if (!data->initrd_res)
+		return NULL;
 
-	} else if (initrd) {
-		res = file_to_sdram(initrd, load_address,
-				    MEMTYPE_LOADER_DATA) ?: ERR_PTR(-ENOMEM);
+	pr_info("Loaded initrd from %s to %pa-%pa\n",
+		data->initrd_files,
+		&data->initrd_res->start, &data->initrd_res->end);
 
-	} else if (data->os_fit) {
-		res = bootm_load_fit_initrd(data, load_address);
-		type = filetype_fit;
-
-	}
-
-	if (IS_ERR_OR_NULL(res))
-		return res;
-
-	pr_info("Loaded initrd from %s %s%s%s to %pa-%pa\n",
-		file_type_to_string(type), initrd,
-		initrd_part ? "@" : "", initrd_part ?: "",
-		&res->start, &res->end);
-
-	data->initrd_res = res;
 	return data->initrd_res;
 }
 
