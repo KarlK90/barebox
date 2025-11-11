@@ -17,6 +17,7 @@
 #include <init.h>
 #include <environment.h>
 #include <linux/stat.h>
+#include <linux/string_helpers.h>
 #include <magicvar.h>
 #include <uncompress.h>
 #include <zero_page.h>
@@ -515,6 +516,26 @@ static int bootm_image_name_and_part(const char *name, char **filename, char **p
 	return 0;
 }
 
+int validate_image_data(const struct image_data *data)
+{
+	const char *chr;
+
+	chr = validate_boot_file(data->os_file);
+	if (!chr)
+	    chr = validate_boot_file(data->oftree_file);
+	if (!chr)
+	    chr = validate_boot_file(data->initrd_file);
+	if (!chr)
+	    chr = validate_boot_file(data->tee_file);
+
+	if (chr) {
+		pr_err("variable has non-permitted character '%c'\n", *chr);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 /*
  * bootm_boot - Boot an application image described by bootm_data
  */
@@ -539,6 +560,11 @@ int bootm_boot(struct bootm_data *bootm_data)
 	bootm_image_name_and_part(bootm_data->initrd_files, &data->initrd_files, &data->initrd_part);
 	if (bootm_data->tee_file)
 		data->tee_file = xstrdup(bootm_data->tee_file);
+
+	ret = validate_image_data(data);
+	if (ret)
+		goto out;
+
 	data->verbose = bootm_data->verbose;
 	data->verify = bootm_data->verify;
 	data->force = bootm_data->force;
@@ -762,6 +788,7 @@ err_out:
 	globalvar_remove("linux.bootargs.bootm.earlycon");
 	globalvar_remove("linux.bootargs.bootm.appendroot");
 	free(data->os_header);
+out:
 	free(data->os_file);
 	free(data->oftree_file);
 	free(data->initrd_files);

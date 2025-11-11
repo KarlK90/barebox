@@ -141,6 +141,8 @@ static inline int bootm_verbose(struct image_data *data)
 void bootm_data_init_defaults(struct bootm_data *data);
 void bootm_data_restore_defaults(const struct bootm_data *data);
 
+int validate_image_data(const struct image_data *data);
+
 int bootm_load_os(struct image_data *data, unsigned long load_address);
 
 const struct resource *

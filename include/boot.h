@@ -4,6 +4,7 @@
 
 #include <of.h>
 #include <menu.h>
+#include <string.h>
 #include <environment.h>
 #include <bootm-overrides.h>
 #include <bootargs.h>
