@@ -543,7 +543,7 @@ int validate_image_data(const struct image_data *data)
 	if (!chr)
 	    chr = validate_boot_file(data->oftree_file);
 	if (!chr)
-	    chr = validate_boot_file(data->initrd_file);
+	    chr = validate_boot_file(data->initrd_files);
 	if (!chr)
 	    chr = validate_boot_file(data->tee_file);
 

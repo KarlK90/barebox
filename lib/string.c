@@ -512,18 +512,19 @@ char * strpbrk(const char * cs,const char * ct)
 #endif
 EXPORT_SYMBOL(strpbrk);
 
+#ifndef __HAVE_ARCH_STRPBRK_UNESCAPED
 char *strpbrk_unescaped(const char *cs, const char *ct)
 {
 	const char *sc1, *sc2;
 	bool escaped = false;
 
-	for( sc1 = cs; *sc1 != '\0'; ++sc1) {
+	for( sc1 = cs; sc1 && *sc1 != '\0'; ++sc1) {
 		if (!escaped && *sc1 == '\\') {
 			escaped = true;
 			continue;
 		}
 
-		for( sc2 = ct; *sc2 != '\0'; ++sc2) {
+		for( sc2 = ct; sc2 && *sc2 != '\0'; ++sc2) {
 			if (*sc1 == *sc2) {
 				if (escaped)
 					break;
