@@ -818,9 +818,11 @@ static int eqos_init_resources(struct eqos *eqos)
 	eqos->tx_descs = (struct eqos_desc *)descs;
 	eqos->rx_descs = (eqos->tx_descs + EQOS_DESCRIPTORS_TX);
 
-	p = dma_alloc(EQOS_DESCRIPTORS_RX * EQOS_MAX_PACKET_SIZE);
-	if (!p)
+	eqos->rx_bufs = dma_alloc(EQOS_DESCRIPTORS_RX * EQOS_MAX_PACKET_SIZE);
+	if (!eqos->rx_bufs)
 		goto err_free_desc;
+
+	p = eqos->rx_bufs;
 
 	for (i = 0; i < EQOS_DESCRIPTORS_RX; i++) {
 		struct eqos_desc *rx_rf_desc = &eqos->rx_descs[i];
@@ -842,7 +844,7 @@ static int eqos_init_resources(struct eqos *eqos)
 	return 0;
 
 err_free_rx_bufs:
-	dma_free(phys_to_virt(eqos->rx_descs[0].des0));
+	dma_free(eqos->rx_bufs);
 err_free_desc:
 	dma_free_coherent(DMA_DEVICE_BROKEN,
 			  descs, 0, EQOS_DESCRIPTORS_SIZE);
@@ -948,16 +950,13 @@ int eqos_probe(struct device *dev, const struct eqos_ops *ops, void *priv)
 
 void eqos_remove(struct device *dev)
 {
-	dma_addr_t	dma;
 	struct eqos *eqos = dev->priv;
 
 	eth_unregister(&eqos->netdev);
 
 	mdiobus_unregister(&eqos->miibus);
 
-	dma = eqos->rx_descs[0].des1;
-	dma = (dma << 32) + eqos->rx_descs[0].des0;
-	dma_free(phys_to_virt(dma));
+	dma_free(eqos->rx_bufs);
 	dma_free_coherent(DMA_DEVICE_BROKEN,
 			  eqos->tx_descs, 0, EQOS_DESCRIPTORS_SIZE);
 }
