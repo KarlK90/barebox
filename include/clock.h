@@ -51,8 +51,6 @@ static inline int is_timeout_interruptible(uint64_t start_ns,
 	return is_timeout(start_ns, max(SCHED_TIMEOUT_MIN, time_offset_ns));
 }
 
-void arm_architected_timer_udelay(unsigned long us);
-
 void ndelay(unsigned long nsecs);
 void udelay(unsigned long usecs);
 void mdelay(unsigned long msecs);
