@@ -16,16 +16,6 @@
 #include <soc/fsl/fsl_immap.h>
 #include <soc/fsl/scfg.h>
 
-void udelay(unsigned long usecs)
-{
-	arm_architected_timer_udelay(usecs);
-}
-
-void mdelay(unsigned long msecs)
-{
-	udelay(1000 * msecs);
-}
-
 enum csu_cslx_access {
 	CSU_NS_SUP_R = 0x08,
 	CSU_NS_SUP_W = 0x80,

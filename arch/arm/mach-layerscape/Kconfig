@@ -48,6 +48,7 @@ endif
 
 config ARCH_LS1021
 	select CPU_V7
+	select PBL_TIMER if !PBL_CLOCKSOURCE && CPU_32v7_ONLY
 	bool
 
 if 32BIT
