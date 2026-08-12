@@ -7,16 +7,18 @@
 
 void udelay(unsigned long us)
 {
-	unsigned long cntfrq = get_cntfrq();
-	unsigned long ticks = (us * cntfrq) / 1000000;
-	unsigned long start = get_cntpct();
+	uint64_t ticks, cntfrq = get_cntfrq();
+	uint64_t start = get_cntpct();
 
-	while ((long)(start + ticks - get_cntpct()) > 0);
+	ticks = DIV_ROUND_DOWN_ULL((us * cntfrq), MSECOND);
+
+	while ((int64_t)(start + ticks - get_cntpct()) > 0)
+		;
 }
 
 void mdelay(unsigned long ms)
 {
-	udelay(ms * 1000);
+	udelay(ms * USECOND);
 }
 
 uint64_t get_time_ns(void)
