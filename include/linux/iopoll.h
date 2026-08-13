@@ -12,7 +12,7 @@
 #include <clock.h>
 #include <pbl.h>
 
-#if IN_PROPER || IS_ENABLED(CONFIG_PBL_TIMER)
+#if IN_PROPER || IS_ENABLED(CONFIG_PBL_CLOCKSOURCE)
 # define read_poll_get_time_ns()	get_time_ns()
 # define read_poll_is_timeout(s, t)	is_timeout(s, t)
 #else

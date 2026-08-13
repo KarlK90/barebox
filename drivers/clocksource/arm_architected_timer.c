@@ -22,21 +22,35 @@ static struct clocksource cs = {
 	.priority = 70,
 };
 
-static int arm_arch_timer_probe(struct device *dev)
+static int arm_arch_timer_init(uint64_t cntfrq)
 {
-	u32 cntfrq;
-	int ret;
-
-	/* Some platforms don't set CNTFRQ_EL0 before barebox */
-	ret = of_property_read_u32(dev->of_node, "clock-frequency", &cntfrq);
-
-	if (ret)
+	if (!cntfrq)
 		cntfrq = get_cntfrq();
 
 	cs.mult = clocksource_hz2mult(cntfrq, cs.shift);
 
 	return init_clock(&cs);
 }
+
+static int arm_arch_timer_probe(struct device *dev)
+{
+	uint32_t cntfrq = 0;
+
+	/* Some platforms don't set CNTFRQ_EL0 before barebox */
+	of_property_read_u32(dev->of_node, "clock-frequency", &cntfrq);
+
+	return arm_arch_timer_init(cntfrq);
+}
+
+#if IN_PBL && IS_ENABLED(CONFIG_PBL_CLOCKSOURCE)
+
+__attribute__((constructor)) void init_arch_clock(void)
+{
+	arm_arch_timer_init(0);
+	cs->priority = 0;
+}
+
+#endif
 
 static struct of_device_id arm_arch_timer_dt_ids[] = {
 	{ .compatible = "arm,armv7-timer", },
