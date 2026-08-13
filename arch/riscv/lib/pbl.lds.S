@@ -4,6 +4,7 @@
 #include <linux/sizes.h>
 #include <asm/barebox.lds.h>
 #include <asm-generic/memory_layout.h>
+#include <asm-generic/pointer.h>
 
 OUTPUT_ARCH(BAREBOX_OUTPUT_ARCH)
 OUTPUT_FORMAT(BAREBOX_OUTPUT_FORMAT)
@@ -31,6 +32,16 @@ SECTIONS
 	. = ALIGN(4);
 	__start_rodata = .;
 	.rodata : { *(.rodata*) }
+
+#ifdef CONFIG_PBL_CTORS
+	. = ALIGN(ASM_SZPTR);
+	__ctors_start = .;
+	.init_array : {
+		KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)))
+		KEEP(*(.init_array))
+	}
+	__ctors_end = .;
+#endif
 
 	.barebox_imd : { BAREBOX_IMD }
 

@@ -80,6 +80,9 @@ config PBL_CLOCKSOURCE
 config PBL_TIMER
 	bool
 
+config PBL_CTORS
+	bool
+
 config BOARD_GENERIC_DT
 	bool
 	select LIBFDT
