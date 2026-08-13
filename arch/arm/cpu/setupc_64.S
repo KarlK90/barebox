@@ -22,6 +22,9 @@ ENTRY(setup_c)
 	adr_l	x0, bss_cleared
 	mov	w1, #1
 	str	w1, [x0]		/* mark bss cleared */
+#ifdef __PBL__
+	bl	pbl_do_ctors
+#endif
 	mov	x30, x15
 1:	ret
 ENDPROC(setup_c)

@@ -3,6 +3,7 @@
 #
 # only unsed by the pbl
 #
+pbl-y += ctors.o
 pbl-y += misc.o
 pbl-y += string.o
 pbl-y += malloc.o
