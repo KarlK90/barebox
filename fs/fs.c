@@ -482,7 +482,10 @@ EXPORT_SYMBOL(read);
 
 static ssize_t __write(struct file *f, const void *buf, size_t count)
 {
+	u64 size = (u64)f->f_size;
+	u64 pos = (u64)f->f_pos;
 	struct fs_driver *fsdrv;
+	u64 end;
 	int ret;
 
 	fsdrv = f->fsdev->driver;
@@ -495,18 +498,35 @@ static ssize_t __write(struct file *f, const void *buf, size_t count)
 	if (fsdrv != ramfs_driver)
 		assert_command_context();
 
-	if (f->f_size != FILE_SIZE_STREAM && f->f_pos + count > f->f_size) {
-		ret = fsdev_truncate(f, f->f_pos + count);
-		if (ret) {
-			if (ret == -EPERM)
-				ret = -ENOSPC;
-			if (ret != -ENOSPC)
+	if (f->f_size != FILE_SIZE_STREAM) {
+		if (f->f_size < 0) {
+			ret = -EINVAL;
+			goto out;
+		}
+
+		/* Writing past the end of the file requires growing it first */
+		end = pos + count;
+		if (end > size) {
+			/* New file size must be representable as loff_t */
+			if (end > (u64)MAX_LFS_FILESIZE ||
+			    (f->f_pos >= 0 && end < pos)) {
+				ret = -EFBIG;
 				goto out;
-			count = f->f_size - f->f_pos;
-			if (!count)
-				goto out;
-		} else {
-			f->f_size = f->f_pos + count;
+			}
+
+			ret = fsdev_truncate(f, end);
+			if (ret) {
+				if (ret == -EPERM)
+					ret = -ENOSPC;
+				if (ret != -ENOSPC)
+					goto out;
+				/* Truncate failed; write what fits into the file */
+				count = pos < size ? size - pos : 0;
+				if (!count)
+					goto out;
+			} else {
+				f->f_size = end;
+			}
 		}
 	}
 
