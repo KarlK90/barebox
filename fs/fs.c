@@ -427,8 +427,16 @@ static ssize_t __read(struct file *f, void *buf, size_t count)
 	if (fsdrv != ramfs_driver)
 		assert_command_context();
 
-	if (f->f_size != FILE_SIZE_STREAM && f->f_pos + count > f->f_size)
-		count = f->f_size - f->f_pos;
+	if (f->f_size != FILE_SIZE_STREAM) {
+		if (f->f_size < 0) {
+			ret = -EINVAL;
+			goto out;
+		}
+		if (f->f_pos > f->f_size)
+			count = 0;
+		else
+			count = min_t(u64, (u64)f->f_size - (u64)f->f_pos, count);
+	}
 
 	if (!count)
 		return 0;
