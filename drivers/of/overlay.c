@@ -99,6 +99,7 @@ static int of_overlay_apply(struct device_node *target,
 static char *of_overlay_fix_path(struct device_node *root,
 				 struct device_node *overlay, const char *path)
 {
+	struct device_node *overlay_node;
 	struct device_node *fragment;
 	struct device_node *target;
 	const char *path_tail;
@@ -106,19 +107,21 @@ static char *of_overlay_fix_path(struct device_node *root,
 
 	fragment = of_find_node_by_path_from(overlay, path);
 	while ((fragment = of_get_parent(fragment)) != NULL) {
-		if (of_get_child_by_name(fragment, "__overlay__"))
+		if ((overlay_node = of_get_child_by_name(
+			     fragment, "__overlay__")) != NULL)
 			break;
 	}
-	if (!fragment) {
-		pr_info("could not find __overlay__ node\n");
+
+	prefix = overlay_node->full_name;
+	if (!fragment || !strstr(path, prefix)) {
+		pr_debug("could not find __overlay__ node for %s\n", path);
 		return NULL;
 	}
 
 	target = find_target(root, fragment, false);
 	if (!target)
-		return NULL;
+		return ERR_PTR(-EINVAL);
 
-	prefix = of_get_child_by_name(fragment, "__overlay__")->full_name;
 	path_tail = path + strlen(prefix);
 
 	return basprintf("%pOF%s", target, path_tail);
@@ -152,8 +155,10 @@ static int of_overlay_apply_symbols(struct device_node *root,
 
 		old_path = of_property_get_value(prop);
 		new_path = of_overlay_fix_path(root, overlay, old_path);
+		if (IS_ERR(new_path))
+			return PTR_ERR(new_path);
 		if (!new_path)
-			return -EINVAL;
+			continue;
 
 		pr_debug("add symbol %s with new path %s\n",
 			 prop->name, new_path);
