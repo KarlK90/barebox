@@ -36,18 +36,20 @@ int of_get_phy_mode(struct device_node *np)
 }
 EXPORT_SYMBOL_GPL(of_get_phy_mode);
 
-static int of_get_mac_addr(struct device_node *np, const char *name, u8 *addr)
+static int of_get_mac_addr(struct device_node *np, const char *name,
+			   MACaddr_t *addr)
 {
 	struct property *pp = of_find_property(np, name, NULL);
 
-	if (pp && pp->length == ETH_ALEN && is_valid_ether_addr(pp->value)) {
-		memcpy(addr, pp->value, ETH_ALEN);
+	if (pp && pp->length == ETH_ALEN &&
+	    is_valid_ether_addr((const MACaddr_t *)pp->value)) {
+		memcpy(addr->addr, pp->value, ETH_ALEN);
 		return 0;
 	}
 	return -ENODEV;
 }
 
-int of_get_mac_addr_nvmem(struct device_node *np, u8 *addr)
+int of_get_mac_addr_nvmem(struct device_node *np, MACaddr_t *addr)
 {
 	struct nvmem_cell *cell;
 	void *mac;
@@ -66,12 +68,12 @@ int of_get_mac_addr_nvmem(struct device_node *np, u8 *addr)
 	if (IS_ERR(mac))
 		return PTR_ERR(mac);
 
-	if (len != ETH_ALEN || !is_valid_ether_addr(mac)) {
+	if (len != ETH_ALEN || !is_valid_ether_addr((const MACaddr_t *)mac)) {
 		kfree(mac);
 		return -EINVAL;
 	}
 
-	memcpy(addr, mac, ETH_ALEN);
+	memcpy(addr->addr, mac, ETH_ALEN);
 	kfree(mac);
 
 	return 0;
@@ -97,7 +99,7 @@ int of_get_mac_addr_nvmem(struct device_node *np, u8 *addr)
  * this case, the real MAC is in 'local-mac-address', and 'mac-address' exists
  * but is all zeros.
 */
-int of_get_mac_address(struct device_node *np, u8 *addr)
+int of_get_mac_address(struct device_node *np, MACaddr_t *addr)
 {
 	int ret;
 

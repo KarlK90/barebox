@@ -16,6 +16,12 @@ struct device;
 struct file_list;
 typedef uint32_t          IPaddr_t;
 
+#define ETH_ALEN	6	/* Octets in an Ethernet address */
+
+typedef struct {
+	u8 addr[ETH_ALEN];
+} MACaddr_t;
+
 enum param_type {
 	PARAM_TYPE_STRING = 0,
 	PARAM_TYPE_INT32,
@@ -103,7 +109,7 @@ struct param_d *bobject_add_param_ip(bobject_t bobj, const char *name,
 struct param_d *bobject_add_param_mac(bobject_t bobj, const char *name,
 				  int (*set)(struct param_d *p, void *priv),
 				  int (*get)(struct param_d *p, void *priv),
-				  u8 *mac, void *priv);
+				  MACaddr_t *mac, void *priv);
 
 struct param_d *bobject_add_param_file_list(bobject_t bobj, const char *name,
 					int (*set)(struct param_d *p, void *priv),
@@ -232,7 +238,7 @@ static inline struct param_d *bobject_add_param_mac(bobject_t bobj,
 						const char *name,
 						int (*set)(struct param_d *p, void *priv),
 						int (*get)(struct param_d *p, void *priv),
-						u8 *mac, void *priv)
+						MACaddr_t *mac, void *priv)
 {
 	return NULL;
 }

@@ -933,13 +933,11 @@ struct param_d *bobject_add_param_ip(bobject_t _bobj, const char *name,
 
 struct param_mac {
 	struct param_d param;
-	char *mac;
+	MACaddr_t *mac;
 	u8 mac_str[sizeof("xx:xx:xx:xx:xx:xx")];
 	int (*set)(struct param_d *p, void *priv);
 	int (*get)(struct param_d *p, void *priv);
 };
-
-int string_to_ethaddr(const char *str, MACaddr_t *enetaddr);
 
 static inline struct param_mac *to_param_mac(struct param_d *p)
 {
@@ -950,15 +948,13 @@ static int param_mac_set(struct bobject *bobj, struct param_d *p,
 			 const char *val)
 {
 	struct param_mac *pm = to_param_mac(p);
-	MACaddr_t mac_save;
+	MACaddr_t mac_save = *pm->mac;
 	int ret;
 
 	if (!val)
 		return -EINVAL;
 
-	memcpy(mac_save.addr, pm->mac, ETH_ALEN);
-
-	ret = string_to_ethaddr(val, (MACaddr_t *)pm->mac);
+	ret = string_to_ethaddr(val, pm->mac);
 	if (ret)
 		goto out;
 
@@ -971,7 +967,7 @@ static int param_mac_set(struct bobject *bobj, struct param_d *p,
 
 	return 0;
 out:
-	memcpy(pm->mac, mac_save.addr, ETH_ALEN);
+	*pm->mac = mac_save;
 
 	return ret;
 }
@@ -987,7 +983,7 @@ static const char *param_mac_get(struct bobject *bobj, struct param_d *p)
 			return NULL;
 	}
 
-	sprintf(p->value, "%pM", pm->mac);
+	sprintf(p->value, "%pM", pm->mac->addr);
 
 	return p->value;
 }
@@ -995,7 +991,7 @@ static const char *param_mac_get(struct bobject *bobj, struct param_d *p)
 struct param_d *bobject_add_param_mac(bobject_t _bobj, const char *name,
 				  int (*set)(struct param_d *p, void *priv),
 				  int (*get)(struct param_d *p, void *priv),
-				  u8 *mac, void *priv)
+				  MACaddr_t *mac, void *priv)
 {
 	struct bobject *bobj = _bobj.bobj;
 	struct param_mac *pm;

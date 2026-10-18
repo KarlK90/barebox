@@ -162,7 +162,7 @@ struct imx_ocotp_data {
 };
 
 struct ocotp_priv_ethaddr {
-	char value[MAC_BYTES];
+	MACaddr_t value;
 	struct regmap *map;
 	u8 offset;
 	const struct imx_ocotp_data *data;
@@ -736,7 +736,7 @@ static void vf610_ocotp_format_mac(u8 *dst, const u8 *src,
 
 static int imx_ocotp_read_mac(const struct imx_ocotp_data *data,
 			      struct regmap *map, unsigned int offset,
-			      u8 mac[])
+			      MACaddr_t *mac)
 {
 	u8 buf[MAC_BYTES];
 	int ret;
@@ -747,9 +747,9 @@ static int imx_ocotp_read_mac(const struct imx_ocotp_data *data,
 		return ret;
 
 	if (offset != IMX6UL_MAC_OFFSET_1 && offset != IMX8MP_MAC_OFFSET_1)
-		data->format_mac(mac, buf, OCOTP_HW_TO_MAC);
+		data->format_mac(mac->addr, buf, OCOTP_HW_TO_MAC);
 	else
-		data->format_mac(mac, buf + 2, OCOTP_HW_TO_MAC);
+		data->format_mac(mac->addr, buf + 2, OCOTP_HW_TO_MAC);
 
 	return 0;
 }
@@ -759,7 +759,7 @@ static int imx_ocotp_get_mac(struct param_d *param, void *priv)
 	struct ocotp_priv_ethaddr *ethaddr = priv;
 
 	return imx_ocotp_read_mac(ethaddr->data, ethaddr->map, ethaddr->offset,
-				  ethaddr->value);
+				  &ethaddr->value);
 }
 
 static int imx_ocotp_set_mac(struct param_d *param, void *priv)
@@ -774,10 +774,10 @@ static int imx_ocotp_set_mac(struct param_d *param, void *priv)
 
 	if (ethaddr->offset != IMX6UL_MAC_OFFSET_1 &&
 	    ethaddr->offset != IMX8MP_MAC_OFFSET_1)
-		ethaddr->data->format_mac(buf, ethaddr->value,
+		ethaddr->data->format_mac(buf, ethaddr->value.addr,
 					  OCOTP_MAC_TO_HW);
 	else
-		ethaddr->data->format_mac(buf + 2, ethaddr->value,
+		ethaddr->data->format_mac(buf + 2, ethaddr->value.addr,
 					  OCOTP_MAC_TO_HW);
 
 	return regmap_bulk_write(ethaddr->map, ethaddr->offset,
@@ -812,7 +812,7 @@ static void imx_ocotp_fixup_dt_cell_info(struct nvmem_device *nvmem,
 
 static int imx_ocotp_init_dt(struct ocotp_priv *priv)
 {
-	char mac[MAC_BYTES];
+	MACaddr_t mac;
 	const __be32 *prop;
 	struct device_node *node = priv->dev.parent->of_node;
 	u32 tester3, tester4;
@@ -834,10 +834,10 @@ static int imx_ocotp_init_dt(struct ocotp_priv *priv)
 
 		if (imx_ocotp_read_mac(priv->data, priv->map,
 				       OCOTP_OFFSET_TO_ADDR(offset),
-				       mac))
+				       &mac))
 			continue;
 
-		of_eth_register_ethaddr(rnode, (const MACaddr_t *)mac);
+		of_eth_register_ethaddr(rnode, &mac);
 	}
 
 	if (!of_property_read_bool(node, "barebox,feature-controller"))
@@ -960,7 +960,7 @@ static int imx_ocotp_probe(struct device *dev)
 
 			dev_add_param_mac(&priv->dev, xasprintf("mac_addr%d", i),
 					  imx_ocotp_set_mac, imx_ocotp_get_mac,
-					  ethaddr->value, ethaddr);
+					  &ethaddr->value, ethaddr);
 		}
 
 		/*
@@ -969,7 +969,7 @@ static int imx_ocotp_probe(struct device *dev)
 		ethaddr = &priv->ethaddr[0];
 		dev_add_param_mac(&priv->dev, "mac_addr",
 				  imx_ocotp_set_mac, imx_ocotp_get_mac,
-				  ethaddr->value, ethaddr);
+				  &ethaddr->value, ethaddr);
 	}
 
 	imx_ocotp_set_unique_machine_id();

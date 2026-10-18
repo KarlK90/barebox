@@ -807,7 +807,7 @@ struct state *state_by_alias(const char *alias)
 	return state_by_node(node);
 }
 
-int state_read_mac(struct state *state, const char *name, u8 *buf)
+int state_read_mac(struct state *state, const char *name, MACaddr_t *buf)
 {
 	struct state_variable *svar;
 	struct state_mac *mac;
@@ -823,7 +823,7 @@ int state_read_mac(struct state *state, const char *name, u8 *buf)
 		return -EINVAL;
 
 	mac = to_state_mac(svar);
-	memcpy(buf, mac->value, 6);
+	*buf = mac->value;
 
 	return 0;
 }

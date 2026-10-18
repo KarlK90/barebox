@@ -2,6 +2,7 @@
 #ifndef __STATE_H
 #define __STATE_H
 
+#include <net.h>
 #include <of.h>
 
 struct state;
@@ -20,7 +21,7 @@ int state_load(struct state *state);
 int state_save(struct state *state);
 void state_info(void);
 
-int state_read_mac(struct state *state, const char *name, u8 *buf);
+int state_read_mac(struct state *state, const char *name, MACaddr_t *buf);
 
 #else /* #if IS_ENABLED(CONFIG_STATE) */
 
@@ -55,7 +56,8 @@ static inline int state_save(struct state *state)
 	return -ENOSYS;
 }
 
-static inline int state_read_mac(struct state *state, const char *name, u8 *buf)
+static inline int state_read_mac(struct state *state, const char *name,
+				 MACaddr_t *buf)
 {
 	return -ENOSYS;
 }

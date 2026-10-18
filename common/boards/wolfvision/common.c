@@ -58,23 +58,23 @@ int wolfvision_register_ethaddr(void)
 {
 	struct device_node *eth0;
 	struct state *state;
-	char mac[ETH_ALEN];
+	MACaddr_t mac;
 	int ret;
 
 	state = state_by_alias("state");
 	if (!state)
 		return -ENOENT;
 
-	ret = state_read_mac(state, "mac-address", mac);
+	ret = state_read_mac(state, "mac-address", &mac);
 	if (ret)
 		return ret;
 
-	if (!is_valid_ether_addr((const MACaddr_t *)mac))
+	if (!is_valid_ether_addr(&mac))
 		return -EINVAL;
 
 	eth0 = of_find_node_by_alias(of_get_root_node(), "ethernet0");
 	if (eth0)
-		of_eth_register_ethaddr(eth0, (const MACaddr_t *)mac);
+		of_eth_register_ethaddr(eth0, &mac);
 
 	return 0;
 }

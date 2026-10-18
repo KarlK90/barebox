@@ -4,6 +4,7 @@
 #include <linux/list.h>
 #include <linux/err.h>
 #include <driver.h>
+#include <net.h>
 
 struct state;
 struct mtd_info_user;
@@ -182,8 +183,8 @@ struct state_enum32 {
  */
 struct state_mac {
 	struct state_variable var;
-	uint8_t value[6];
-	uint8_t value_default[6];
+	MACaddr_t value;
+	MACaddr_t value_default;
 };
 
 /*

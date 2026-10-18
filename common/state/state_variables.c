@@ -277,11 +277,10 @@ static int state_mac_export(struct state_variable *var,
 	struct state_mac *mac = to_state_mac(var);
 	int ret;
 
-	if (!is_zero_ether_addr((const MACaddr_t *)mac->value_default)) {
+	if (!is_zero_ether_addr(&mac->value_default)) {
 		ret = of_property_write_u8_array(node, "default",
-						 mac->value_default,
-						 ARRAY_SIZE(mac->
-							    value_default));
+						 mac->value_default.addr,
+						 ETH_ALEN);
 		if (ret)
 			return ret;
 	}
@@ -289,19 +288,19 @@ static int state_mac_export(struct state_variable *var,
 	if (conv == STATE_CONVERT_FIXUP)
 		return 0;
 
-	return of_property_write_u8_array(node, "value", mac->value,
-					  ARRAY_SIZE(mac->value));
+	return of_property_write_u8_array(node, "value", mac->value.addr,
+					  ETH_ALEN);
 }
 
 static int state_mac_import(struct state_variable *sv, struct device_node *node)
 {
 	struct state_mac *mac = to_state_mac(sv);
 
-	of_property_read_u8_array(node, "default", mac->value_default,
-				  ARRAY_SIZE(mac->value_default));
-	if (of_property_read_u8_array(node, "value", mac->value,
-				      ARRAY_SIZE(mac->value)))
-		memcpy(mac->value, mac->value_default, ARRAY_SIZE(mac->value));
+	of_property_read_u8_array(node, "default", mac->value_default.addr,
+				  ETH_ALEN);
+	if (of_property_read_u8_array(node, "value", mac->value.addr,
+				      ETH_ALEN))
+		memcpy(mac->value.addr, mac->value_default.addr, ETH_ALEN);
 
 	return 0;
 }
@@ -318,12 +317,12 @@ static struct state_variable *state_mac_create(struct state *state,
 	mac = xzalloc(sizeof(*mac));
 
 	mac->var.type = vtype;
-	mac->var.size = ARRAY_SIZE(mac->value);
-	mac->var.raw = mac->value;
+	mac->var.size = ETH_ALEN;
+	mac->var.raw = mac->value.addr;
 	mac->var.state = state;
 
 	param = dev_add_param_mac(&state->dev, name, state_set_dirty,
-				       NULL, mac->value, &mac->var);
+				       NULL, &mac->value, &mac->var);
 	if (IS_ERR(param)) {
 		ret = PTR_ERR(param);
 		goto out;

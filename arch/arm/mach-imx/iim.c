@@ -348,12 +348,10 @@ static int imx_iim_add_bank(struct iim_priv *iim, int num, int nregs)
 
 #if IS_ENABLED(CONFIG_OFDEVICE)
 
-#define MAC_BYTES	6
-
 struct imx_iim_mac {
 	struct iim_bank *bank;
 	int offset;
-	u8 ethaddr[MAC_BYTES];
+	MACaddr_t ethaddr;
 };
 
 static int imx_iim_get_mac(struct param_d *param, void *priv)
@@ -362,7 +360,8 @@ static int imx_iim_get_mac(struct param_d *param, void *priv)
 	struct iim_bank *bank = iimmac->bank;
 	int ret;
 
-	ret = regmap_bulk_read(bank->map, iimmac->offset, iimmac->ethaddr, MAC_BYTES);
+	ret = regmap_bulk_read(bank->map, iimmac->offset, iimmac->ethaddr.addr,
+			       ETH_ALEN);
 	if (ret < 0)
 		return ret;
 
@@ -375,7 +374,8 @@ static int imx_iim_set_mac(struct param_d *param, void *priv)
 	struct iim_bank *bank = iimmac->bank;
 	int ret;
 
-	ret = regmap_bulk_write(bank->map, iimmac->offset, iimmac->ethaddr, MAC_BYTES);
+	ret = regmap_bulk_write(bank->map, iimmac->offset, iimmac->ethaddr.addr,
+				ETH_ALEN);
 	if (ret < 0)
 		return ret;
 
@@ -394,7 +394,7 @@ static void imx_iim_add_mac_param(struct iim_priv *iim, int macnum, int bank, in
 	name = basprintf("ethaddr%d", macnum);
 
 	dev_add_param_mac(&iim->dev, name, imx_iim_set_mac,
-			imx_iim_get_mac, iimmac->ethaddr, iimmac);
+			imx_iim_get_mac, &iimmac->ethaddr, iimmac);
 
 	free(name);
 }
@@ -407,7 +407,7 @@ static void imx_iim_add_mac_param(struct iim_priv *iim, int macnum, int bank, in
 
 static void imx_iim_init_dt(struct device *dev, struct iim_priv *iim)
 {
-	char mac[6];
+	MACaddr_t mac;
 	const __be32 *prop;
 	struct device_node *node = dev->of_node;
 	int len, ret, macnum = 0;
@@ -429,11 +429,12 @@ static void imx_iim_init_dt(struct device *dev, struct iim_priv *iim)
 		bank = be32_to_cpup(prop++);
 		offset = be32_to_cpup(prop++);
 
-		ret = regmap_bulk_read(iim->bank[bank]->map, offset, mac, MAC_BYTES);
+		ret = regmap_bulk_read(iim->bank[bank]->map, offset, mac.addr,
+				       ETH_ALEN);
 		if (ret)
 			dev_err(dev, "cannot read: %pe\n", ERR_PTR(ret));
 		else
-			of_eth_register_ethaddr(rnode, (const MACaddr_t *)mac);
+			of_eth_register_ethaddr(rnode, &mac);
 
 		if (IS_ENABLED(CONFIG_NET))
 			imx_iim_add_mac_param(iim, macnum, bank, offset);

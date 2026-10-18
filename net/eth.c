@@ -464,7 +464,7 @@ int eth_register(struct eth_device *edev)
 	dev_add_param_ip(dev, "gateway", eth_param_set_gw, NULL, &net_gateway, edev);
 	dev_add_param_ip(dev, "netmask", eth_param_set_nm, NULL, &edev->netmask, edev);
 	dev_add_param_mac(dev, "ethaddr", eth_param_set_ethaddr, NULL,
-			edev->ethaddr.addr, edev);
+			&edev->ethaddr, edev);
 	edev->bootarg = xstrdup("");
 	dev_add_param_string(dev, "linux.bootargs", NULL, NULL, &edev->bootarg, NULL);
 	edev->linuxdevname = xstrdup("");
@@ -601,7 +601,7 @@ static int populate_ethaddr(void)
 			continue;
 
 		ret = of_get_mac_addr_nvmem(edev->parent->of_node,
-					    edev->ethaddr.addr);
+					    &edev->ethaddr);
 		if (IS_ENABLED(CONFIG_NET_ETHADDR_FROM_MACHINE_ID) && ret) {
 			ret = generate_ether_addr(&edev->ethaddr, edev->dev.id);
 			generated = true;
