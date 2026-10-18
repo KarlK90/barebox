@@ -105,7 +105,7 @@ static struct nxid *nxp_nxid_read(const char *filename, unsigned int offset)
 		if (!of_device_is_available(np))
 			continue;
 
-		of_eth_register_ethaddr(np, (char *)nxid->mac[i]);
+		of_eth_register_ethaddr(np, (const MACaddr_t *)nxid->mac[i]);
 
 		i++;
 

@@ -342,13 +342,13 @@ static int smsc95xx_disable_csums(struct usbnet *dev)
 	return 0;
 }
 
-static int smsc95xx_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int smsc95xx_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	struct usbnet *udev = container_of(edev, struct usbnet, edev);
 
-	u32 addr_lo = adr[0] | adr[1] << 8 |
-		adr[2] << 16 | adr[3] << 24;
-	u32 addr_hi = adr[4] | adr[5] << 8;
+	u32 addr_lo = adr->addr[0] | adr->addr[1] << 8 |
+		adr->addr[2] << 16 | adr->addr[3] << 24;
+	u32 addr_hi = adr->addr[4] | adr->addr[5] << 8;
 	int ret;
 
 	ret = smsc95xx_write_reg(udev, ADDRL, addr_lo);
@@ -366,13 +366,13 @@ static int smsc95xx_set_ethaddr(struct eth_device *edev, const unsigned char *ad
 	return 0;
 }
 
-static int smsc95xx_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int smsc95xx_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct usbnet *udev = container_of(edev, struct usbnet, edev);
 
 	/* try reading mac address from EEPROM */
 	if (smsc95xx_read_eeprom(udev, EEPROM_MAC_OFFSET, ETH_ALEN,
-			adr) == 0) {
+			adr->addr) == 0) {
 		return 0;
 	}
 

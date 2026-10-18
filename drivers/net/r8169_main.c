@@ -3065,30 +3065,30 @@ static void rtl8169_eth_rx(struct eth_device *edev)
 	}
 }
 
-static int rtl8169_get_ethaddr(struct eth_device *edev, unsigned char *mac_addr)
+static int rtl8169_get_ethaddr(struct eth_device *edev, MACaddr_t *mac_addr)
 {
 	struct rtl8169_private *tp = edev->priv;
 
-	rtl_read_mac_address(tp, mac_addr);
+	rtl_read_mac_address(tp, mac_addr->addr);
 	if (is_valid_ether_addr(mac_addr))
 		return 0;
 
-	rtl_read_mac_address(tp, mac_addr);
+	rtl_read_mac_address(tp, mac_addr->addr);
 	if (is_valid_ether_addr(mac_addr))
 		return 0;
 
-	rtl_read_mac_from_reg(tp, mac_addr, MAC0);
+	rtl_read_mac_from_reg(tp, mac_addr->addr, MAC0);
 	if (is_valid_ether_addr(mac_addr))
 		return 0;
 
 	return 0;
 }
 
-static int rtl8169_set_ethaddr(struct eth_device *edev, const unsigned char *mac_addr)
+static int rtl8169_set_ethaddr(struct eth_device *edev, const MACaddr_t *mac_addr)
 {
 	struct rtl8169_private *tp = edev->priv;
 
-	rtl_rar_set(tp, mac_addr);
+	rtl_rar_set(tp, mac_addr->addr);
 
 	return 0;
 }

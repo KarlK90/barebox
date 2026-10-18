@@ -65,7 +65,7 @@ static int source_env_network(struct eth_device *edev)
 		"linuxdevname",
 	};
 	IPaddr_t ipaddr, netmask, gateway, serverip;
-	unsigned char ethaddr[6];
+	MACaddr_t ethaddr;
 	char *file;
 	const char *ethaddrstr, *modestr, *linuxdevname;
 	int ret, mode, ethaddr_valid = 0, i;
@@ -98,7 +98,7 @@ static int source_env_network(struct eth_device *edev)
 	linuxdevname = getenv("linuxdevname");
 	ethaddrstr = getenv("ethaddr");
 	if (ethaddrstr && *ethaddrstr) {
-		ret = string_to_ethaddr(ethaddrstr, ethaddr);
+		ret = string_to_ethaddr(ethaddrstr, &ethaddr);
 		if (ret) {
 			dev_err(&edev->dev, "Cannot parse ethaddr \"%s\"\n", ethaddrstr);
 			ret = -EINVAL;
@@ -127,7 +127,7 @@ static int source_env_network(struct eth_device *edev)
 	edev->global_mode = mode;
 
 	if (ethaddr_valid)
-		memcpy(edev->ethaddr, ethaddr, 6);
+		memcpy(edev->ethaddr.addr, ethaddr.addr, ETH_ALEN);
 
 	if (mode == ETH_MODE_STATIC) {
 		net_set_ip(edev, ipaddr);

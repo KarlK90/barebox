@@ -34,7 +34,7 @@ static int eem_open(struct eth_device *edev)
 	return 0;
 }
 
-static int eem_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int eem_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	/* EEM devices have no MAC address of their own */
 	if (generate_ether_addr(adr, edev->dev.id))
@@ -43,7 +43,7 @@ static int eem_get_ethaddr(struct eth_device *edev, unsigned char *adr)
 	return 0;
 }
 
-static int eem_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int eem_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	return 0;
 }

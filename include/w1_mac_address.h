@@ -52,7 +52,7 @@ static inline int w1_local_mac_address_register(int ethid, char * oui, char *w1_
 	addr[0] &= 0xfe;	/* clear multicast bit */
 	addr[0] |= 0x02;	/* set local assignment bit (IEEE802) */
 
-	eth_register_ethaddr(ethid, addr);
+	eth_register_ethaddr(ethid, (const MACaddr_t *)addr);
 
 err:
 	free(tmp);

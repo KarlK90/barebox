@@ -330,25 +330,25 @@ static int ax88179_mdio_write(struct mii_bus *bus, int phy_id, int loc, u16 val)
 	return 0;
 }
 
-static int ax88179_set_mac_addr(struct eth_device *edev, const unsigned char *adr)
+static int ax88179_set_mac_addr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	struct usbnet *udev = container_of(edev, struct usbnet, edev);
 	int ret;
 
 	ret = ax88179_write_cmd(udev, AX_ACCESS_MAC, AX_NODE_ID, ETH_ALEN,
-				 ETH_ALEN, adr);
+				 ETH_ALEN, adr->addr);
 	if (ret < 0)
 		return ret;
 
 	return 0;
 }
 
-static int ax88179_get_mac_addr(struct eth_device *edev, unsigned char *adr)
+static int ax88179_get_mac_addr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct usbnet *udev = container_of(edev, struct usbnet, edev);
 
 	ax88179_read_cmd(udev, AX_ACCESS_MAC, AX_NODE_ID, ETH_ALEN,
-			 ETH_ALEN, adr);
+			 ETH_ALEN, adr->addr);
 	return 0;
 }
 

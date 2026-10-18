@@ -357,12 +357,12 @@ static int ag71xx_ether_mii_write(struct mii_bus *miidev, int phy_addr,
 }
 
 static int ag71xx_ether_set_ethaddr(struct eth_device *edev,
-				    const unsigned char *adr)
+				    const MACaddr_t *adr)
 {
 	return 0;
 }
 
-static int ag71xx_ether_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int ag71xx_ether_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	/* We have no eeprom */
 	return -ENODEV;

@@ -216,11 +216,11 @@ static int zii_rdu1_ethernet_init(void)
 	if (!mac_string)
 		return -ENOENT;
 
-	ret = string_to_ethaddr(mac_string, mac);
+	ret = string_to_ethaddr(mac_string, (MACaddr_t *)mac);
 	if (ret < 0)
 		return ret;
 
-	of_eth_register_ethaddr(np, mac);
+	of_eth_register_ethaddr(np, (const MACaddr_t *)mac);
 	return 0;
 }
 /* This needs to happen only after zii_rdu1_load_config was

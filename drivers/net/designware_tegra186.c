@@ -168,7 +168,7 @@ static unsigned long eqos_get_csr_clk_rate_tegra186(struct eqos *eqos)
 	return clk_get_rate(to_tegra186(eqos)->clks[CLK_SLAVE_BUS].clk);
 }
 
-static int eqos_set_ethaddr_tegra186(struct eth_device *edev, const unsigned char *mac)
+static int eqos_set_ethaddr_tegra186(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct eqos *eqos = edev->priv;
 
@@ -196,7 +196,7 @@ static int eqos_set_ethaddr_tegra186(struct eth_device *edev, const unsigned cha
 	 */
 
 	if (!edev->active) {
-		memcpy(eqos->macaddr, mac, 6);
+		memcpy(eqos->macaddr, mac->addr, ETH_ALEN);
 		return 0;
 	}
 

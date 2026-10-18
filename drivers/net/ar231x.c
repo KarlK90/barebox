@@ -66,7 +66,7 @@ static void ar231x_reset_bit_(struct ar231x_eth_priv *priv,
 		(*priv->reset_bit)(val, state);
 }
 
-static int ar231x_set_ethaddr(struct eth_device *edev, const unsigned char *addr);
+static int ar231x_set_ethaddr(struct eth_device *edev, const MACaddr_t *addr);
 static void ar231x_reset_regs(struct eth_device *edev)
 {
 	struct ar231x_eth_priv *priv = edev->priv;
@@ -172,7 +172,7 @@ static int ar231x_eth_init(struct eth_device *edev)
 
 	ar231x_allocate_dma_descriptors(edev);
 	ar231x_reset_regs(edev);
-	ar231x_set_ethaddr(edev, priv->mac);
+	ar231x_set_ethaddr(edev, (const MACaddr_t *)priv->mac);
 	return 0;
 }
 
@@ -281,13 +281,13 @@ static void ar231x_eth_halt(struct eth_device *edev)
 	ar231x_reset_bit_(priv, (priv->cfg->reset_mac | priv->cfg->reset_phy), SET);
 }
 
-static int ar231x_get_ethaddr(struct eth_device *edev, unsigned char *addr)
+static int ar231x_get_ethaddr(struct eth_device *edev, MACaddr_t *addr)
 {
 	struct ar231x_eth_priv *priv = edev->priv;
 
 	/* MAC address is stored on flash, in some kind of atheros config
 	 * area. Platform code should read it and pass to the driver. */
-	memcpy(addr, priv->mac, 6);
+	memcpy(addr->addr, priv->mac, 6);
 	return 0;
 }
 
@@ -295,16 +295,16 @@ static int ar231x_get_ethaddr(struct eth_device *edev, unsigned char *addr)
  * These device do not have build in MAC address.
  * It is located on atheros-config field on flash.
  */
-static int ar231x_set_ethaddr(struct eth_device *edev, unsigned char *addr)
+static int ar231x_set_ethaddr(struct eth_device *edev, const MACaddr_t *addr)
 {
 	struct ar231x_eth_priv *priv = edev->priv;
 
 	eth_writel(priv,
-			(addr[5] <<  8) | (addr[4]),
+			(addr->addr[5] <<  8) | (addr->addr[4]),
 			AR231X_ETH_MAC_ADDR1);
 	eth_writel(priv,
-			(addr[3] << 24) | (addr[2] << 16) |
-			(addr[1] <<  8) | addr[0],
+			(addr->addr[3] << 24) | (addr->addr[2] << 16) |
+			(addr->addr[1] <<  8) | addr->addr[0],
 			AR231X_ETH_MAC_ADDR2);
 
 	mdelay(10);

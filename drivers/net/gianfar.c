@@ -240,22 +240,22 @@ static int gfar_open(struct eth_device *edev)
 	return 0;
 }
 
-static int gfar_get_ethaddr(struct eth_device *edev, unsigned char *mac)
+static int gfar_get_ethaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	return -ENODEV;
 }
 
-static int gfar_set_ethaddr(struct eth_device *edev, const unsigned char *mac)
+static int gfar_set_ethaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct gfar_private *priv = edev->priv;
 	void __iomem *regs = priv->regs;
 	uint tempval;
 
-	tempval = (mac[5] << 24) | (mac[4] << 16) | (mac[3] << 8)  |  mac[2];
+	tempval = (mac->addr[5] << 24) | (mac->addr[4] << 16) | (mac->addr[3] << 8)  |  mac->addr[2];
 
 	out_be32(regs + GFAR_MACSTRADDR1_OFFSET, tempval);
 
-	tempval = (mac[1] << 24) | (mac[0] << 16);
+	tempval = (mac->addr[1] << 24) | (mac->addr[0] << 16);
 
 	out_be32(regs + GFAR_MACSTRADDR2_OFFSET, tempval);
 

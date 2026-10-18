@@ -27,7 +27,7 @@ static int rdu_eth_register_ethaddr(struct device_node *np)
 
 	free(data);
 
-	of_eth_register_ethaddr(np, mac);
+	of_eth_register_ethaddr(np, (const MACaddr_t *)mac);
 
 	return 0;
 }

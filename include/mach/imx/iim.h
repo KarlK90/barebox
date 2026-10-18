@@ -42,7 +42,7 @@ static inline int imx51_iim_register_fec_ethaddr(void)
 	if (ret != 6)
 		return -EINVAL;
 
-	eth_register_ethaddr(0, buf);
+	eth_register_ethaddr(0, (const MACaddr_t *)buf);
 
 	return 0;
 }
@@ -61,7 +61,7 @@ static inline int imx25_iim_register_fec_ethaddr(void)
 	if (ret != 6)
 		return -EINVAL;
 
-	eth_register_ethaddr(0, buf);
+	eth_register_ethaddr(0, (const MACaddr_t *)buf);
 
 	return 0;
 }

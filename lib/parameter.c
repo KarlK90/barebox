@@ -939,7 +939,7 @@ struct param_mac {
 	int (*get)(struct param_d *p, void *priv);
 };
 
-int string_to_ethaddr(const char *str, u8 enetaddr[6]);
+int string_to_ethaddr(const char *str, MACaddr_t *enetaddr);
 
 static inline struct param_mac *to_param_mac(struct param_d *p)
 {
@@ -950,15 +950,15 @@ static int param_mac_set(struct bobject *bobj, struct param_d *p,
 			 const char *val)
 {
 	struct param_mac *pm = to_param_mac(p);
-	char mac_save[6];
+	MACaddr_t mac_save;
 	int ret;
 
 	if (!val)
 		return -EINVAL;
 
-	memcpy(mac_save, pm->mac, 6);
+	memcpy(mac_save.addr, pm->mac, ETH_ALEN);
 
-	ret = string_to_ethaddr(val, pm->mac);
+	ret = string_to_ethaddr(val, (MACaddr_t *)pm->mac);
 	if (ret)
 		goto out;
 
@@ -971,7 +971,7 @@ static int param_mac_set(struct bobject *bobj, struct param_d *p,
 
 	return 0;
 out:
-	memcpy(pm->mac, mac_save, 6);
+	memcpy(pm->mac, mac_save.addr, ETH_ALEN);
 
 	return ret;
 }

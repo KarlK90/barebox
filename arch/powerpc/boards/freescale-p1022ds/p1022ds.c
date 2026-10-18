@@ -95,7 +95,7 @@ static void board_eth_init(void)
 		if (ret != sizeof(mac))
 			pr_err("Fail to retrieve MAC address\n");
 		else
-			eth_register_ethaddr(ix, mac);
+			eth_register_ethaddr(ix, (const MACaddr_t *)mac);
 	}
 
 	fsl_eth_init(1, &gfar_info[0]);

@@ -348,7 +348,7 @@ static int gether_start_xmit(struct eth_device *net, void *packet, int length)
 
 	/* apply outgoing CDC or RNDIS filters */
 	if (!is_promisc(cdc_filter)) {
-		u8		*dest = packet;
+		const MACaddr_t *dest = packet;
 
 		if (is_multicast_ether_addr(dest)) {
 			u16	type;
@@ -523,20 +523,20 @@ static int get_ether_addr_str(u8 dev_addr[ETH_ALEN], char *str, int len)
 	return 18;
 }
 
-static int gether_set_ethaddr(struct eth_device *net, const unsigned char *mac)
+static int gether_set_ethaddr(struct eth_device *net, const MACaddr_t *mac)
 {
 	struct eth_dev *dev = net->priv;
 
-	memcpy(dev->dev_mac, mac, ETH_ALEN);
+	memcpy(dev->dev_mac, mac->addr, ETH_ALEN);
 	return 0;
 }
 
-static int gether_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int gether_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct eth_dev *dev = edev->priv;
 
-	if (is_valid_ether_addr(dev->dev_mac)) {
-		memcpy(adr, dev->dev_mac, ETH_ALEN);
+	if (is_valid_ether_addr((const MACaddr_t *)dev->dev_mac)) {
+		memcpy(adr->addr, dev->dev_mac, ETH_ALEN);
 		return 0;
 	}
 
@@ -560,7 +560,7 @@ struct eth_device *gether_setup_default(void)
 	dev->qmult = QMULT_DEFAULT;
 
 	/* The device address is assigned by the net core at registration */
-	random_ether_addr(dev->host_mac);
+	random_ether_addr((MACaddr_t *)dev->host_mac);
 
 	dev->net.priv = dev;
 

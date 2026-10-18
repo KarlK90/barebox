@@ -277,7 +277,7 @@ static int state_mac_export(struct state_variable *var,
 	struct state_mac *mac = to_state_mac(var);
 	int ret;
 
-	if (!is_zero_ether_addr(mac->value_default)) {
+	if (!is_zero_ether_addr((const MACaddr_t *)mac->value_default)) {
 		ret = of_property_write_u8_array(node, "default",
 						 mac->value_default,
 						 ARRAY_SIZE(mac->

@@ -396,7 +396,7 @@ static int asix_write_gpio(struct usbnet *dev, u16 value, int sleep)
 	return ret;
 }
 
-static int asix_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int asix_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct usbnet *udev = container_of(edev, struct usbnet, edev);
 	int i, ret;
@@ -405,12 +405,12 @@ static int asix_get_ethaddr(struct eth_device *edev, unsigned char *adr)
 	if (udev->driver_info->data & FLAG_EEPROM_MAC) {
 		for (i = 0; i < (6 >> 1); i++) {
 			ret = asix_read_cmd(udev, AX_CMD_READ_EEPROM, 0x04 + i,
-					0, 2, adr + i * 2);
+					0, 2, adr->addr + i * 2);
 			if (ret < 0)
 				break;
 		}
 	} else {
-		ret = asix_read_cmd(udev, AX_CMD_READ_NODE_ID, 0, 0, 6, adr);
+		ret = asix_read_cmd(udev, AX_CMD_READ_NODE_ID, 0, 0, 6, adr->addr);
 	}
 
 	if (ret < 0) {
@@ -421,7 +421,7 @@ static int asix_get_ethaddr(struct eth_device *edev, unsigned char *adr)
 	return 0;
 }
 
-static int asix_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int asix_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	/* not possible? */
 	return 0;
@@ -446,14 +446,14 @@ static int asix_set_promisc(struct eth_device *edev, bool enable)
 	return 0;
 }
 
-static int ax88172_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int ax88172_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct usbnet *udev = container_of(edev, struct usbnet, edev);
 	int ret;
 
 	/* Get the MAC address */
 	if ((ret = asix_read_cmd(udev, AX88172_CMD_READ_NODE_ID,
-				0, 0, 6, adr)) < 0) {
+				0, 0, 6, adr->addr)) < 0) {
 		debug("read AX_CMD_READ_NODE_ID failed: %d\n", ret);
 		return ret;
 	}

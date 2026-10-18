@@ -69,12 +69,12 @@ int wolfvision_register_ethaddr(void)
 	if (ret)
 		return ret;
 
-	if (!is_valid_ether_addr(mac))
+	if (!is_valid_ether_addr((const MACaddr_t *)mac))
 		return -EINVAL;
 
 	eth0 = of_find_node_by_alias(of_get_root_node(), "ethernet0");
 	if (eth0)
-		of_eth_register_ethaddr(eth0, mac);
+		of_eth_register_ethaddr(eth0, (const MACaddr_t *)mac);
 
 	return 0;
 }

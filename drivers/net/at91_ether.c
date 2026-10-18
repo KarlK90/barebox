@@ -244,13 +244,13 @@ static void at91_ether_halt (struct eth_device *edev)
 	at91_emac_write(AT91_EMAC_CTL, ctl);
 }
 
-static int at91_ether_get_ethaddr(struct eth_device *eth, unsigned char *adr)
+static int at91_ether_get_ethaddr(struct eth_device *eth, MACaddr_t *adr)
 {
 	/* We have no eeprom */
 	return -1;
 }
 
-static int at91_ether_set_ethaddr(struct eth_device *eth, const unsigned char *adr)
+static int at91_ether_set_ethaddr(struct eth_device *eth, const MACaddr_t *adr)
 {
 	int i;
 
@@ -262,21 +262,21 @@ static int at91_ether_set_ethaddr(struct eth_device *eth, const unsigned char *a
 	 */
 	if (machine_is_csb337()) {
 		at91_emac_write(AT91_EMAC_SA2H,
-				   (adr[0] <<  8) | (adr[1]));
+				   (adr->addr[0] <<  8) | (adr->addr[1]));
 		at91_emac_write(AT91_EMAC_SA2L,
-				   (adr[2] << 24) | (adr[3] << 16)
-				 | (adr[4] <<  8) | (adr[5]));
+				   (adr->addr[2] << 24) | (adr->addr[3] << 16)
+				 | (adr->addr[4] <<  8) | (adr->addr[5]));
 	} else {
 		at91_emac_write(AT91_EMAC_SA2L,
-				   (adr[3] << 24) | (adr[2] << 16)
-				 | (adr[1] <<  8) | (adr[0]));
+				   (adr->addr[3] << 24) | (adr->addr[2] << 16)
+				 | (adr->addr[1] <<  8) | (adr->addr[0]));
 		at91_emac_write(AT91_EMAC_SA2H,
-				   (adr[5] <<  8) | (adr[4]));
+				   (adr->addr[5] <<  8) | (adr->addr[4]));
 	}
 
 	for (i = 0; i < 5; i++)
-		debug ("%02x:", adr[i]);
-	debug ("%02x\n", adr[5]);
+		debug ("%02x:", adr->addr[i]);
+	debug ("%02x\n", adr->addr[5]);
 
 	return 0;
 }

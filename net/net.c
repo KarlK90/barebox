@@ -229,7 +229,7 @@ static int arp_request(struct eth_device *edev, IPaddr_t dest, unsigned char *et
 	pr_debug("send ARP broadcast for %pI4\n", &dest);
 
 	memset(et->et_dest, 0xff, 6);
-	memcpy(et->et_src, edev->ethaddr, 6);
+	memcpy(et->et_src, edev->ethaddr.addr, ETH_ALEN);
 	et->et_protlen = htons(PROT_ARP);
 
 	arp = (struct arprequest *)(pkt + ETHER_HDR_SIZE);
@@ -240,7 +240,7 @@ static int arp_request(struct eth_device *edev, IPaddr_t dest, unsigned char *et
 	arp->ar_pln = 4;
 	arp->ar_op = htons(ARPOP_REQUEST);
 
-	memcpy(arp->ar_data, edev->ethaddr, 6);	/* source ET addr	*/
+	memcpy(arp->ar_data, edev->ethaddr.addr, ETH_ALEN);	/* source ET addr	*/
 	net_write_ip(arp->ar_data + 6, edev->ipaddr);	/* source IP addr	*/
 	memset(arp->ar_data + 10, 0, 6);	/* dest ET addr = 0     */
 
@@ -433,7 +433,7 @@ static LIST_HEAD(connection_list);
  *
  * Return 0 if an address could be generated or a negative error code otherwise.
  */
-int generate_ether_addr(u8 *ethaddr, int ethid)
+int generate_ether_addr(MACaddr_t *ethaddr, int ethid)
 {
 	const char *hostname;
 	uuid_t id;
@@ -451,11 +451,11 @@ int generate_ether_addr(u8 *ethaddr, int ethid)
 	if (ret)
 		return ret;
 
-	memcpy(ethaddr, &id.b, ETH_ALEN);
+	memcpy(ethaddr->addr, &id.b, ETH_ALEN);
 	eth_addr_add(ethaddr, ethid);
 
-	ethaddr[0] &= 0xfe;	/* clear multicast bit */
-	ethaddr[0] |= 0x02;	/* set local assignment bit (IEEE802) */
+	ethaddr->addr[0] &= 0xfe;	/* clear multicast bit */
+	ethaddr->addr[0] |= 0x02;	/* set local assignment bit (IEEE802) */
 
 	return 0;
 }
@@ -474,15 +474,15 @@ static struct net_connection *net_new(struct eth_device *edev, IPaddr_t dest,
 			return ERR_PTR(-EHOSTUNREACH);
 	}
 
-	if (!is_valid_ether_addr(edev->ethaddr)) {
-		ret = generate_ether_addr(edev->ethaddr, edev->dev.id);
+	if (!is_valid_ether_addr(&edev->ethaddr)) {
+		ret = generate_ether_addr(&edev->ethaddr, edev->dev.id);
 		if (ret)
-			random_ether_addr(edev->ethaddr);
+			random_ether_addr(&edev->ethaddr);
 
 		dev_warn(&edev->dev, "No MAC address set. Using %s %pM\n",
 			 ret == 1 ? "address computed from unique ID" : "random address",
-			 edev->ethaddr);
-		eth_set_ethaddr(edev, edev->ethaddr);
+			 edev->ethaddr.addr);
+		eth_set_ethaddr(edev, &edev->ethaddr);
 	}
 
 	/* If we don't have an ip only broadcast is allowed */
@@ -514,7 +514,7 @@ static struct net_connection *net_new(struct eth_device *edev, IPaddr_t dest,
 	}
 
 	con->et->et_protlen = htons(PROT_IP);
-	memcpy(con->et->et_src, edev->ethaddr, 6);
+	memcpy(con->et->et_src, edev->ethaddr.addr, ETH_ALEN);
 
 	con->ip->hl_v = 0x45;
 	con->ip->tos = 0;
@@ -612,13 +612,13 @@ static int net_answer_arp(struct eth_device *edev, unsigned char *pkt, int len)
 	pr_debug("%s\n", __func__);
 
 	memcpy (et->et_dest, et->et_src, 6);
-	memcpy (et->et_src, edev->ethaddr, 6);
+	memcpy (et->et_src, edev->ethaddr.addr, ETH_ALEN);
 
 	et->et_protlen = htons(PROT_ARP);
 	arp->ar_op = htons(ARPOP_REPLY);
 	memcpy(&arp->ar_data[10], &arp->ar_data[0], 6);
 	net_copy_ip(&arp->ar_data[16], &arp->ar_data[6]);
-	memcpy(&arp->ar_data[0], edev->ethaddr, 6);
+	memcpy(&arp->ar_data[0], edev->ethaddr.addr, ETH_ALEN);
 	net_copy_ip(&arp->ar_data[6], &edev->ipaddr);
 
 	packet = net_alloc_packet();
@@ -753,7 +753,7 @@ static int ping_reply(struct eth_device *edev, unsigned char *pkt, int len)
 	int ret;
 
 	memcpy(et->et_dest, et->et_src, 6);
-	memcpy(et->et_src, edev->ethaddr, 6);
+	memcpy(et->et_src, edev->ethaddr.addr, ETH_ALEN);
 	et->et_protlen = htons(PROT_IP);
 
 	icmp = net_eth_to_icmphdr(pkt);

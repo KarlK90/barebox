@@ -210,7 +210,7 @@ static int dwc_ether_init(struct eth_device *dev)
 		return -1;
 
 	/* HW MAC address is lost during MAC reset */
-	dev->set_ethaddr(dev, priv->macaddr);
+	dev->set_ethaddr(dev, (const MACaddr_t *)priv->macaddr);
 
 	writel(FIXEDBURST | PRIORXTX_41 | BURST_16, &dma_p->busmode);
 	writel(readl(&dma_p->opmode) | FLUSHTXFIFO | STOREFORWARD |
@@ -388,24 +388,24 @@ static void dwc_ether_halt (struct eth_device *dev)
 	priv->tx_currdescnum = priv->rx_currdescnum = 0;
 }
 
-static int dwc_ether_get_ethaddr(struct eth_device *dev, u8 adr[6])
+static int dwc_ether_get_ethaddr(struct eth_device *dev, MACaddr_t *adr)
 {
 	/* we have no EEPROM */
 	return -1;
 }
 
-static int dwc_ether_set_ethaddr(struct eth_device *dev, const unsigned char *adr)
+static int dwc_ether_set_ethaddr(struct eth_device *dev, const MACaddr_t *adr)
 {
 	struct dw_eth_dev *priv = dev->priv;
 	struct eth_mac_regs *mac_p = priv->mac_regs_p;
 	u32 macid_lo, macid_hi;
 
-	macid_lo = adr[0] + (adr[1] << 8) +
-		   (adr[2] << 16) + (adr[3] << 24);
-	macid_hi = adr[4] + (adr[5] << 8);
+	macid_lo = adr->addr[0] + (adr->addr[1] << 8) +
+		   (adr->addr[2] << 16) + (adr->addr[3] << 24);
+	macid_hi = adr->addr[4] + (adr->addr[5] << 8);
 	writel(macid_hi, &mac_p->macaddr0hi);
 	writel(macid_lo, &mac_p->macaddr0lo);
-	memcpy(priv->macaddr, adr, 6);
+	memcpy(priv->macaddr, adr->addr, 6);
 	return 0;
 }
 

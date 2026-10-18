@@ -218,12 +218,12 @@ static void xgmac_adjust_link(struct eth_device *edev)
 	}
 }
 
-static int xgmac_write_hwaddr(struct eth_device *edev, const unsigned char *mac)
+static int xgmac_write_hwaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct xgmac_priv *xgmac = to_xgmac(edev);
 	u32 val;
 
-	memcpy(xgmac->macaddr, mac, ETH_ALEN);
+	memcpy(xgmac->macaddr, mac->addr, ETH_ALEN);
 
 	/*
 	 * This function may be called before start() or after stop(). At that
@@ -257,7 +257,7 @@ static int xgmac_write_hwaddr(struct eth_device *edev, const unsigned char *mac)
 	return 0;
 }
 
-static int xgmac_read_rom_hwaddr(struct eth_device *edev, unsigned char *mac)
+static int xgmac_read_rom_hwaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	struct xgmac_priv *xgmac = to_xgmac(edev);
 	int ret;
@@ -266,7 +266,7 @@ static int xgmac_read_rom_hwaddr(struct eth_device *edev, unsigned char *mac)
 	if (ret < 0)
 		return ret;
 
-	if (is_valid_ether_addr(xgmac->macaddr))
+	if (is_valid_ether_addr((const MACaddr_t *)xgmac->macaddr))
 		return 0;
 
 	return -EINVAL;

@@ -557,20 +557,20 @@ static int am65_cpsw_am654_get_efuse_macid(struct am65_cpsw_port *port,
 	return 0;
 }
 
-static int am65_cpsw_get_ethaddr(struct eth_device *edev, unsigned char *mac)
+static int am65_cpsw_get_ethaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	struct am65_cpsw_port *port = edev_to_port(edev);
 
-	am65_cpsw_am654_get_efuse_macid(port, mac);
+	am65_cpsw_am654_get_efuse_macid(port, mac->addr);
 
 	return 0;
 }
 
-#define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |    \
-			 ((mac)[2] << 16) | ((mac)[3] << 24))
-#define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
+#define mac_hi(mac)	(((mac)->addr[0] << 0) | ((mac)->addr[1] << 8) |    \
+			 ((mac)->addr[2] << 16) | ((mac)->addr[3] << 24))
+#define mac_lo(mac)	(((mac)->addr[4] << 0) | ((mac)->addr[5] << 8))
 
-static int am65_cpsw_set_ethaddr(struct eth_device *edev, const unsigned char *mac)
+static int am65_cpsw_set_ethaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct am65_cpsw_port *port = edev_to_port(edev);
 

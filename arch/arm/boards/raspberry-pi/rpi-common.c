@@ -73,7 +73,7 @@ static void rpi_set_usbethaddr(void)
 	if (rpi_get_usbethaddr(mac))
 		return; /* Ignore error; not critical */
 
-	eth_register_ethaddr(0, mac);
+	eth_register_ethaddr(0, (const MACaddr_t *)mac);
 }
 
 static void rpi_set_usbotg(const char *alias)

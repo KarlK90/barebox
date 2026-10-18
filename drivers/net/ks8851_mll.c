@@ -568,24 +568,24 @@ static int ks_phy_write(struct mii_bus *bus, int addr, int reg, u16 val)
 	return 0;
 }
 
-static int ks8851_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int ks8851_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct ks_net *priv = (struct ks_net *)edev->priv;
 
-	((u16 *) adr)[0] = be16_to_cpu(ks_rdreg16(priv, KS_MARH));
-	((u16 *) adr)[1] = be16_to_cpu(ks_rdreg16(priv, KS_MARM));
-	((u16 *) adr)[2] = be16_to_cpu(ks_rdreg16(priv, KS_MARL));
+	((u16 *) adr->addr)[0] = be16_to_cpu(ks_rdreg16(priv, KS_MARH));
+	((u16 *) adr->addr)[1] = be16_to_cpu(ks_rdreg16(priv, KS_MARM));
+	((u16 *) adr->addr)[2] = be16_to_cpu(ks_rdreg16(priv, KS_MARL));
 
 	return 0;
 }
 
-static int ks8851_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int ks8851_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	struct ks_net *priv = (struct ks_net *)edev->priv;
 
-	ks_wrreg16(priv, KS_MARH, cpu_to_be16(((u16 *) adr)[0]));
-	ks_wrreg16(priv, KS_MARM, cpu_to_be16(((u16 *) adr)[1]));
-	ks_wrreg16(priv, KS_MARL, cpu_to_be16(((u16 *) adr)[2]));
+	ks_wrreg16(priv, KS_MARH, cpu_to_be16(((u16 *) adr->addr)[0]));
+	ks_wrreg16(priv, KS_MARM, cpu_to_be16(((u16 *) adr->addr)[1]));
+	ks_wrreg16(priv, KS_MARL, cpu_to_be16(((u16 *) adr->addr)[2]));
 
 	return 0;
 }

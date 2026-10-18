@@ -117,8 +117,8 @@ static int physom_devices_init(void)
 	state = state_by_name("am335x_phytec_mac_state");
 	for (state_i = 0; state_i < 2; state_i++) {
 		state_ret = state_read_mac(state, eth_names[state_i], &mac[0]);
-		if (!state_ret && is_valid_ether_addr(&mac[0]))
-			eth_register_ethaddr(state_i, mac);
+		if (!state_ret && is_valid_ether_addr((const MACaddr_t *)&mac[0]))
+			eth_register_ethaddr(state_i, (const MACaddr_t *)mac);
 	}
 
 	if (IS_ENABLED(CONFIG_PHYTEC_SOM_AM335X_OF_AUTOENABLE)) {

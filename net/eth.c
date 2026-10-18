@@ -34,7 +34,7 @@ int eth_set_promisc(struct eth_device *edev, bool enable)
 	return edev->set_promisc(edev, enable);
 }
 
-int eth_set_ethaddr(struct eth_device *edev, const char *ethaddr)
+int eth_set_ethaddr(struct eth_device *edev, const MACaddr_t *ethaddr)
 {
 	int ret;
 
@@ -42,21 +42,21 @@ int eth_set_ethaddr(struct eth_device *edev, const char *ethaddr)
 	if (ret)
 		return ret;
 
-	if (ethaddr != edev->ethaddr)
-		memcpy(edev->ethaddr, ethaddr, ETH_ALEN);
+	if (ethaddr != &edev->ethaddr)
+		memcpy(edev->ethaddr.addr, ethaddr->addr, ETH_ALEN);
 
 	return 0;
 }
 
-static void register_preset_mac_address(struct eth_device *edev, const char *ethaddr)
+static void register_preset_mac_address(struct eth_device *edev, const MACaddr_t *ethaddr)
 {
 	if (is_valid_ether_addr(ethaddr)) {
-		dev_info(&edev->dev, "got preset MAC address: %pM\n", ethaddr);
+		dev_info(&edev->dev, "got preset MAC address: %pM\n", ethaddr->addr);
 		eth_set_ethaddr(edev, ethaddr);
 	}
 }
 
-static int eth_get_registered_ethaddr(struct eth_device *edev, void *buf)
+static int eth_get_registered_ethaddr(struct eth_device *edev, MACaddr_t *buf)
 {
 	struct eth_ethaddr *addr;
 	struct device_node *node = NULL;
@@ -67,7 +67,7 @@ static int eth_get_registered_ethaddr(struct eth_device *edev, void *buf)
 	list_for_each_entry(addr, &ethaddr_list, list) {
 		if ((node && node == addr->node) ||
 				addr->ethid == edev->dev.id) {
-			memcpy(buf, addr->ethaddr, ETH_ALEN);
+			memcpy(buf->addr, addr->ethaddr.addr, ETH_ALEN);
 			return 0;
 		}
 	}
@@ -87,7 +87,7 @@ static void eth_drop_ethaddr(int ethid)
 	}
 }
 
-void eth_register_ethaddr(int ethid, const char *ethaddr)
+void eth_register_ethaddr(int ethid, const MACaddr_t *ethaddr)
 {
 	struct eth_ethaddr *addr;
 	struct eth_device *edev;
@@ -103,7 +103,7 @@ void eth_register_ethaddr(int ethid, const char *ethaddr)
 
 	addr = xzalloc(sizeof(*addr));
 	addr->ethid = ethid;
-	memcpy(addr->ethaddr, ethaddr, ETH_ALEN);
+	memcpy(addr->ethaddr.addr, ethaddr->addr, ETH_ALEN);
 	list_add_tail(&addr->list, &ethaddr_list);
 }
 
@@ -122,7 +122,7 @@ static struct eth_device *eth_get_by_node(struct device_node *node)
 	return NULL;
 }
 
-void of_eth_register_ethaddr(struct device_node *node, const char *ethaddr)
+void of_eth_register_ethaddr(struct device_node *node, const MACaddr_t *ethaddr)
 {
 	struct eth_ethaddr *addr;
 	struct eth_device *edev;
@@ -136,7 +136,7 @@ void of_eth_register_ethaddr(struct device_node *node, const char *ethaddr)
 	addr = xzalloc(sizeof(*addr));
 	addr->node = node;
 	addr->ethid = -1;
-	memcpy(addr->ethaddr, ethaddr, ETH_ALEN);
+	memcpy(addr->ethaddr.addr, ethaddr->addr, ETH_ALEN);
 	list_add_tail(&addr->list, &ethaddr_list);
 }
 
@@ -310,7 +310,7 @@ static int eth_param_set_ethaddr(struct param_d *param, void *priv)
 {
 	struct eth_device *edev = priv;
 
-	return eth_set_ethaddr(edev, edev->ethaddr);
+	return eth_set_ethaddr(edev, &edev->ethaddr);
 }
 
 #ifdef CONFIG_OFTREE
@@ -335,8 +335,8 @@ struct device_node *eth_of_get_fixup_node(struct device_node *root,
 }
 
 static void eth_of_fixup_node(struct device_node *root,
-			      const char *node_path, int ethid,
-			      const u8 ethaddr[ETH_ALEN])
+				      const char *node_path, int ethid,
+				      const MACaddr_t *ethaddr)
 {
 	struct device_node *fixup_node;
 	int ret;
@@ -353,7 +353,7 @@ static void eth_of_fixup_node(struct device_node *root,
 		return;
 	}
 
-	ret = of_set_property(fixup_node, "mac-address", ethaddr, ETH_ALEN, 1);
+	ret = of_set_property(fixup_node, "mac-address", ethaddr->addr, ETH_ALEN, 1);
 	if (ret)
 		pr_err("Setting mac-address property of %s failed with: %pe\n",
 		       fixup_node->full_name, ERR_PTR(ret));
@@ -373,10 +373,10 @@ static int eth_of_fixup(struct device_node *root, void *unused)
 	 */
 	list_for_each_entry(addr, &ethaddr_list, list)
 		eth_of_fixup_node(root, addr->node ? addr->node->full_name : NULL,
-				  addr->ethid, addr->ethaddr);
+				  addr->ethid, &addr->ethaddr);
 
 	for_each_netdev(edev)
-		eth_of_fixup_node(root, edev->nodepath, edev->dev.id, edev->ethaddr);
+		eth_of_fixup_node(root, edev->nodepath, edev->dev.id, &edev->ethaddr);
 
 	return 0;
 }
@@ -427,7 +427,7 @@ static int eth_param_set_nm(struct param_d *p, void *priv)
 int eth_register(struct eth_device *edev)
 {
 	struct device *dev = &edev->dev;
-	unsigned char ethaddr[ETH_ALEN];
+	MACaddr_t ethaddr;
 	int ret, found = 0;
 
 	if (!edev->get_ethaddr) {
@@ -464,7 +464,7 @@ int eth_register(struct eth_device *edev)
 	dev_add_param_ip(dev, "gateway", eth_param_set_gw, NULL, &net_gateway, edev);
 	dev_add_param_ip(dev, "netmask", eth_param_set_nm, NULL, &edev->netmask, edev);
 	dev_add_param_mac(dev, "ethaddr", eth_param_set_ethaddr, NULL,
-			edev->ethaddr, edev);
+			edev->ethaddr.addr, edev);
 	edev->bootarg = xstrdup("");
 	dev_add_param_string(dev, "linux.bootargs", NULL, NULL, &edev->bootarg, NULL);
 	edev->linuxdevname = xstrdup("");
@@ -478,18 +478,18 @@ int eth_register(struct eth_device *edev)
 
 	class_add_device(&eth_class, &edev->dev);
 
-	ret = eth_get_registered_ethaddr(edev, ethaddr);
+	ret = eth_get_registered_ethaddr(edev, &ethaddr);
 	if (!ret)
 		found = 1;
 
 	if (!found) {
-		ret = edev->get_ethaddr(edev, ethaddr);
+		ret = edev->get_ethaddr(edev, &ethaddr);
 		if (!ret)
 			found = 1;
 	}
 
 	if (found)
-		register_preset_mac_address(edev, ethaddr);
+		register_preset_mac_address(edev, &ethaddr);
 
 	if (IS_ENABLED(CONFIG_OFDEVICE) && edev->parent &&
 			edev->parent->of_node)
@@ -597,13 +597,13 @@ static int populate_ethaddr(void)
 	int ret;
 
 	for_each_netdev(edev) {
-		if (!edev->parent || is_valid_ether_addr(edev->ethaddr))
+		if (!edev->parent || is_valid_ether_addr(&edev->ethaddr))
 			continue;
 
 		ret = of_get_mac_addr_nvmem(edev->parent->of_node,
-					    edev->ethaddr);
+					    edev->ethaddr.addr);
 		if (IS_ENABLED(CONFIG_NET_ETHADDR_FROM_MACHINE_ID) && ret) {
-			ret = generate_ether_addr(edev->ethaddr, edev->dev.id);
+			ret = generate_ether_addr(&edev->ethaddr, edev->dev.id);
 			generated = true;
 		}
 		if (ret)
@@ -611,11 +611,11 @@ static int populate_ethaddr(void)
 
 		if (generated)
 			dev_notice(&edev->dev, "Generated MAC address from unique id: %pM\n",
-				   edev->ethaddr);
+				   edev->ethaddr.addr);
 		else
 			dev_info(&edev->dev, "Got preset MAC address from NVMEM: %pM\n",
-				 edev->ethaddr);
-		eth_set_ethaddr(edev, edev->ethaddr);
+				 edev->ethaddr.addr);
+		eth_set_ethaddr(edev, &edev->ethaddr);
 	}
 
 	return 0;

@@ -301,11 +301,11 @@ recv_err:
 	writel((u32)rxdesc->nxtdesc, &port->current_rxdesc);
 }
 
-static int port_set_ethaddr(struct eth_device *edev, const unsigned char *mac)
+static int port_set_ethaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct port_priv *port = edev->priv;
-	u32 mac_h = (mac[0] << 24) | (mac[1] << 16) | (mac[2] << 8) | mac[3];
-	u32 mac_l = (mac[4] << 8) | mac[5];
+	u32 mac_h = (mac->addr[0] << 24) | (mac->addr[1] << 16) | (mac->addr[2] << 8) | mac->addr[3];
+	u32 mac_l = (mac->addr[4] << 8) | mac->addr[5];
 
 	port_clear_mac_tables(port);
 
@@ -313,25 +313,25 @@ static int port_set_ethaddr(struct eth_device *edev, const unsigned char *mac)
 	writel(mac_h, port->regs + PORT_MACAH);
 
 	/* accept frames for this address */
-	port_set_unicast_filter(port, mac[5], ACCEPT_MAC_ADDR);
+	port_set_unicast_filter(port, mac->addr[5], ACCEPT_MAC_ADDR);
 
 	return 0;
 }
 
-static int port_get_ethaddr(struct eth_device *edev, unsigned char *mac)
+static int port_get_ethaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	struct port_priv *port = edev->priv;
 	u32 reg;
 
 	reg = readl(port->regs + PORT_MACAH);
-	mac[0] = (u8)(reg >> 24) & 0xff;
-	mac[1] = (u8)(reg >> 16) & 0xff;
-	mac[2] = (u8)(reg >> 8) & 0xff;
-	mac[3] = (u8)reg & 0xff;
+	mac->addr[0] = (u8)(reg >> 24) & 0xff;
+	mac->addr[1] = (u8)(reg >> 16) & 0xff;
+	mac->addr[2] = (u8)(reg >> 8) & 0xff;
+	mac->addr[3] = (u8)reg & 0xff;
 
 	reg = readl(port->regs + PORT_MACAL);
-	mac[4] = (u8)(reg >> 8) & 0xff;
-	mac[5] = (u8)reg & 0xff;
+	mac->addr[4] = (u8)(reg >> 8) & 0xff;
+	mac->addr[5] = (u8)reg & 0xff;
 
 	return 0;
 }

@@ -354,7 +354,7 @@ static void tx28_get_ethaddr(void)
 	ethaddr[0] = cpu_to_be32(buf[0]);
 	ethaddr[1] = cpu_to_be32(buf[1]);
 
-	eth_register_ethaddr(0, (char *)ethaddr);
+	eth_register_ethaddr(0, (const MACaddr_t *)ethaddr);
 }
 
 void base_board_init(void)

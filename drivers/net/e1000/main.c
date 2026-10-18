@@ -316,7 +316,7 @@ static bool e1000_is_second_port(struct e1000_hw *hw)
  *
  * edev - Struct containing variables accessed by shared code
  *****************************************************************************/
-static int e1000_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int e1000_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct e1000_hw *hw = edev->priv;
 	uint16_t eeprom_data;
@@ -328,13 +328,13 @@ static int e1000_get_ethaddr(struct eth_device *edev, unsigned char *adr)
 	if (hw->mac_type == e1000_igb) {
 		/* i210 preloads MAC address into RAL/RAH registers */
 		reg_data = e1000_read_reg_array(hw, E1000_RA, 0);
-		adr[0] = reg_data & 0xff;
-		adr[1] = (reg_data >> 8) & 0xff;
-		adr[2] = (reg_data >> 16) & 0xff;
-		adr[3] = (reg_data >> 24) & 0xff;
+		adr->addr[0] = reg_data & 0xff;
+		adr->addr[1] = (reg_data >> 8) & 0xff;
+		adr->addr[2] = (reg_data >> 16) & 0xff;
+		adr->addr[3] = (reg_data >> 24) & 0xff;
 		reg_data = e1000_read_reg_array(hw, E1000_RA, 1);
-		adr[4] = reg_data & 0xff;
-		adr[5] = (reg_data >> 8) & 0xff;
+		adr->addr[4] = reg_data & 0xff;
+		adr->addr[5] = (reg_data >> 8) & 0xff;
 		return 0;
 	}
 
@@ -343,18 +343,18 @@ static int e1000_get_ethaddr(struct eth_device *edev, unsigned char *adr)
 			dev_err(hw->dev, "EEPROM Read Error\n");
 			return -E1000_ERR_EEPROM;
 		}
-		adr[i] = eeprom_data & 0xff;
-		adr[i + 1] = (eeprom_data >> 8) & 0xff;
+		adr->addr[i] = eeprom_data & 0xff;
+		adr->addr[i + 1] = (eeprom_data >> 8) & 0xff;
 	}
 
 	/* Invert the last bit if this is the second device */
 	if (e1000_is_second_port(hw))
-		adr[5] ^= 1;
+		adr->addr[5] ^= 1;
 
 	return 0;
 }
 
-static int e1000_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int e1000_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	struct e1000_hw *hw = edev->priv;
 	uint32_t addr_low;
@@ -364,8 +364,8 @@ static int e1000_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
 
 	dev_dbg(hw->dev, "Programming MAC Address into RAR[0]\n");
 
-	addr_low = (adr[0] | (adr[1] << 8) | (adr[2] << 16) | (adr[3] << 24));
-	addr_high = (adr[4] | (adr[5] << 8) | E1000_RAH_AV);
+	addr_low = (adr->addr[0] | (adr->addr[1] << 8) | (adr->addr[2] << 16) | (adr->addr[3] << 24));
+	addr_high = (adr->addr[4] | (adr->addr[5] << 8) | E1000_RAH_AV);
 
 	e1000_write_reg_array(hw, E1000_RA, 0, addr_low);
 	e1000_write_reg_array(hw, E1000_RA, 1, addr_high);
@@ -3643,7 +3643,7 @@ static int e1000_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	if (e1000_validate_eeprom_checksum(hw))
 		return 0;
 
-	e1000_get_ethaddr(edev, edev->ethaddr);
+	e1000_get_ethaddr(edev, &edev->ethaddr);
 
 	/* Set up the function pointers and register the device */
 	edev->parent = &pdev->dev;

@@ -412,31 +412,31 @@ static void ethoc_halt(struct eth_device *edev)
 	ethoc_disable_rx_and_tx(edev->priv);
 }
 
-static int ethoc_get_ethaddr(struct eth_device *edev, unsigned char *mac)
+static int ethoc_get_ethaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	struct ethoc *priv = edev->priv;
 	u32 reg;
 
 	reg = ethoc_read(priv, MAC_ADDR0);
-	mac[2] = (reg >> 24) & 0xff;
-	mac[3] = (reg >> 16) & 0xff;
-	mac[4] = (reg >>  8) & 0xff;
-	mac[5] = (reg >>  0) & 0xff;
+	mac->addr[2] = (reg >> 24) & 0xff;
+	mac->addr[3] = (reg >> 16) & 0xff;
+	mac->addr[4] = (reg >>  8) & 0xff;
+	mac->addr[5] = (reg >>  0) & 0xff;
 
 	reg = ethoc_read(priv, MAC_ADDR1);
-	mac[0] = (reg >>  8) & 0xff;
-	mac[1] = (reg >>  0) & 0xff;
+	mac->addr[0] = (reg >>  8) & 0xff;
+	mac->addr[1] = (reg >>  0) & 0xff;
 
 	return 0;
 }
 
-static int ethoc_set_ethaddr(struct eth_device *edev, const unsigned char *mac)
+static int ethoc_set_ethaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct ethoc *dev = edev->priv;
 
-	ethoc_write(dev, MAC_ADDR0, (mac[2] << 24) | (mac[3] << 16) |
-		    (mac[4] << 8) | (mac[5] << 0));
-	ethoc_write(dev, MAC_ADDR1, (mac[0] << 8) | (mac[1] << 0));
+	ethoc_write(dev, MAC_ADDR0, (mac->addr[2] << 24) | (mac->addr[3] << 16) |
+		    (mac->addr[4] << 8) | (mac->addr[5] << 0));
+	ethoc_write(dev, MAC_ADDR1, (mac->addr[0] << 8) | (mac->addr[1] << 0));
 
 	return 0;
 }

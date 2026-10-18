@@ -200,13 +200,13 @@ static int prt_imx6_set_mac(struct prt_imx6_priv *priv,
 	if (!of_device_is_available(node))
 		return 0;
 
-	if (!is_valid_ether_addr(&rfid->mac[0])) {
+	if (!is_valid_ether_addr((const MACaddr_t *)&rfid->mac[0])) {
 		dev_err(dev, "bad MAC addr: %pM\n", &rfid->mac[0]);
 
 		return -EILSEQ;
 	}
 
-	of_eth_register_ethaddr(node, &rfid->mac[0]);
+	of_eth_register_ethaddr(node, (const MACaddr_t *)&rfid->mac[0]);
 
 	return 0;
 }

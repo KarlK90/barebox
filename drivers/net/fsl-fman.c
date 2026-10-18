@@ -958,7 +958,7 @@ static void memac_init_mac(struct fm_eth *fm_eth)
 	out_be32(&regs->hashtable_ctrl, 0);
 }
 
-static int memac_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int memac_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	struct fm_eth *fm_eth = to_fm_eth(edev);
 	struct memac *regs = fm_eth->regs;
@@ -968,17 +968,17 @@ static int memac_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
 	 * if a station address of 0x12345678ABCD, perform a write to
 	 * MAC_ADDR0 of 0x78563412, MAC_ADDR1 of 0x0000CDAB
 	 */
-	mac_addr0 = (adr[3] << 24) | (adr[2] << 16) | \
-			(adr[1] << 8)  | (adr[0]);
+	mac_addr0 = (adr->addr[3] << 24) | (adr->addr[2] << 16) | \
+			(adr->addr[1] << 8)  | (adr->addr[0]);
 	out_be32(&regs->mac_addr_0, mac_addr0);
 
-	mac_addr1 = ((adr[5] << 8) | adr[4]) & 0x0000ffff;
+	mac_addr1 = ((adr->addr[5] << 8) | adr->addr[4]) & 0x0000ffff;
 	out_be32(&regs->mac_addr_1, mac_addr1);
 
 	return 0;
 }
 
-static int memac_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int memac_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct fm_eth *fm_eth = to_fm_eth(edev);
 	struct memac *regs = fm_eth->regs;
@@ -987,12 +987,12 @@ static int memac_get_ethaddr(struct eth_device *edev, unsigned char *adr)
 	mac_addr0 = in_be32(&regs->mac_addr_0);
 	mac_addr1 = in_be32(&regs->mac_addr_1);
 
-	adr[0] = mac_addr0 & 0xff;
-	adr[1] = (mac_addr0 >> 8) & 0xff;
-	adr[2] = (mac_addr0 >> 16) & 0xff;
-	adr[3] = (mac_addr0 >> 24) & 0xff;
-	adr[4] = mac_addr1 & 0xff;
-	adr[5] = (mac_addr1 >> 8) & 0xff;
+	adr->addr[0] = mac_addr0 & 0xff;
+	adr->addr[1] = (mac_addr0 >> 8) & 0xff;
+	adr->addr[2] = (mac_addr0 >> 16) & 0xff;
+	adr->addr[3] = (mac_addr0 >> 24) & 0xff;
+	adr->addr[4] = mac_addr1 & 0xff;
+	adr->addr[5] = (mac_addr1 >> 8) & 0xff;
 
 	return 0;
 }

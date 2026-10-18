@@ -44,9 +44,9 @@ static void set_mac_addr(void)
 	/* check vendor prefix and set the environment variable */
 	hwaddr_prefix = (hwaddr[0] << 16) | (hwaddr[1] << 8) | (hwaddr[2]);
 	if (hwaddr_prefix == ENCLUSTRA_PREFIX) {
-		eth_register_ethaddr(0, hwaddr);
-		eth_addr_inc(hwaddr); /* calculate 2nd, consecutive MAC address */
-		eth_register_ethaddr(1, hwaddr);
+		eth_register_ethaddr(0, (const MACaddr_t *)hwaddr);
+		eth_addr_inc((MACaddr_t *)hwaddr); /* calculate 2nd, consecutive MAC address */
+		eth_register_ethaddr(1, (const MACaddr_t *)hwaddr);
 	} else {
 		pr_err("Invalid MAC address vendor prefix\n");
 	}

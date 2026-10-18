@@ -263,7 +263,7 @@ static __init int ccxmx51_init(void)
 		break;
 	}
 
-	eth_register_ethaddr(0, hwid);
+	eth_register_ethaddr(0, (const MACaddr_t *)hwid);
 
 	boardserial = ((hwid[2] & 0x3f) << 24) | (hwid[3] << 16) | (hwid[4] << 8) | hwid[5];
 

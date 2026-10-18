@@ -208,13 +208,13 @@ static void mpc5xxx_fec_tbd_scrub(mpc5xxx_fec_priv *fec)
 	}
 }
 
-static int mpc5xxx_fec_get_ethaddr(struct eth_device *dev, unsigned char *mac)
+static int mpc5xxx_fec_get_ethaddr(struct eth_device *dev, MACaddr_t *mac)
 {
 	/* no eeprom */
 	return -1;
 }
 
-static int mpc5xxx_fec_set_ethaddr(struct eth_device *dev, const unsigned char *mac)
+static int mpc5xxx_fec_set_ethaddr(struct eth_device *dev, const MACaddr_t *mac)
 {
 	mpc5xxx_fec_priv *fec = (mpc5xxx_fec_priv *)dev->priv;
 	uint8_t currByte;			/* byte for which to compute the CRC */
@@ -238,7 +238,7 @@ static int mpc5xxx_fec_set_ethaddr(struct eth_device *dev, const unsigned char *
 	 * polynomiumm itself as a 32-bit constant.
 	 */
 	for (byte = 0; byte < 6; byte++) {
-		currByte = mac[byte];
+		currByte = mac->addr[byte];
 		for (bit = 0; bit < 8; bit++) {
 			if ((currByte & 0x01) ^ (crc & 0x01)) {
 				crc >>= 1;
@@ -266,8 +266,8 @@ static int mpc5xxx_fec_set_ethaddr(struct eth_device *dev, const unsigned char *
 	/*
 	 * Set physical address
 	 */
-	fec->eth->paddr1 = (mac[0] << 24) + (mac[1] << 16) + (mac[2] << 8) + mac[3];
-	fec->eth->paddr2 = (mac[4] << 24) + (mac[5] << 16) + 0x8808;
+	fec->eth->paddr1 = (mac->addr[0] << 24) + (mac->addr[1] << 16) + (mac->addr[2] << 8) + mac->addr[3];
+	fec->eth->paddr2 = (mac->addr[4] << 24) + (mac->addr[5] << 16) + 0x8808;
 
         return 0;
 }

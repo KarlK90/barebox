@@ -338,20 +338,20 @@ static int rtl8139_phy_write(struct mii_bus *bus, int phy_addr,
 	return 0;
 }
 
-static int rtl8139_get_ethaddr(struct eth_device *edev, unsigned char *m)
+static int rtl8139_get_ethaddr(struct eth_device *edev, MACaddr_t *m)
 {
 	struct rtl8139_priv *priv = edev->priv;
 	int i;
 
 	for (i = 0; i < 6; i++) {
-		m[i] = RTL_R8(priv, (MAC0 + i));
+		m->addr[i] = RTL_R8(priv, (MAC0 + i));
 	}
 
 	return 0;
 }
 
 static int rtl8139_set_ethaddr(struct eth_device *edev,
-					const unsigned char *mac_addr)
+						const MACaddr_t *mac_addr)
 {
 	struct rtl8139_priv *priv = edev->priv;
 	int i;
@@ -359,8 +359,8 @@ static int rtl8139_set_ethaddr(struct eth_device *edev,
 	RTL_W8(priv, Cfg9346, Cfg9346_Unlock);
 
 	for (i = 0; i < 6; i++) {
-		RTL_W8(priv, (MAC0 + i), mac_addr[i]);
-		RTL_R8(priv, mac_addr[i]);
+		RTL_W8(priv, (MAC0 + i), mac_addr->addr[i]);
+		RTL_R8(priv, mac_addr->addr[i]);
 	}
 
 	RTL_W8(priv, Cfg9346, Cfg9346_Lock);

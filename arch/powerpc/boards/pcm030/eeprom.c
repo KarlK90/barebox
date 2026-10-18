@@ -80,8 +80,8 @@ static void pcm030_read_factory_data(const struct pcm030_eeprom *buf)
 		full_mac[13] = buf->product[u + 9];
 		full_mac[15] = buf->product[u + 10];
 		full_mac[16] = buf->product[u + 11];
-		string_to_ethaddr(full_mac, enetaddr);
-		eth_register_ethaddr(0, enetaddr);
+		string_to_ethaddr(full_mac, (MACaddr_t *)enetaddr);
+		eth_register_ethaddr(0, (const MACaddr_t *)enetaddr);
 		return;
 	}
 

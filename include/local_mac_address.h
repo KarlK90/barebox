@@ -18,22 +18,22 @@
  */
 static inline int local_mac_address_register(int ethid, char * oui)
 {
-	char addr[6];
+	MACaddr_t addr;
 	int nb_oui = 3;
 	int i;
 
 	if (!oui)
 		return -EINVAL;
 
-	random_ether_addr(addr);
+	random_ether_addr(&addr);
 
 	for (i = 0; i < nb_oui; i++)
-		addr[i] = oui[i];
+		addr.addr[i] = oui[i];
 
-	addr[0] &= 0xfe;	/* clear multicast bit */
-	addr[0] |= 0x02;	/* set local assignment bit (IEEE802) */
+	addr.addr[0] &= 0xfe;	/* clear multicast bit */
+	addr.addr[0] |= 0x02;	/* set local assignment bit (IEEE802) */
 
-	eth_register_ethaddr(ethid, addr);
+	eth_register_ethaddr(ethid, &addr);
 
 	return 0;
 }

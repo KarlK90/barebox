@@ -684,29 +684,29 @@ static u16 read_srom_word(struct dm9k *priv, int offset)
 	return (dm9k_ior(priv, DM9K_EPDRL) + (dm9k_ior(priv, DM9K_EPDRH) << 8));
 }
 
-static int dm9k_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int dm9k_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct dm9k *priv = (struct dm9k *)edev->priv;
 	int i, oft;
 
 	if (priv->srom) {
 		for (i = 0; i < 3; i++)
-			((u16 *) adr)[i] = read_srom_word(priv, i);
+			((u16 *) adr->addr)[i] = read_srom_word(priv, i);
 	} else {
 		for (i = 0, oft = DM9K_PAR; i < 6; i++, oft++)
-			adr[i] = dm9k_ior(priv, oft);
+			adr->addr[i] = dm9k_ior(priv, oft);
 	}
 
 	return 0;
 }
 
-static int dm9k_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int dm9k_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	struct dm9k *priv = (struct dm9k *)edev->priv;
 	int i, oft;
 
 	for (i = 0, oft = DM9K_PAR; i < 6; i++, oft++)
-		dm9k_iow(priv, oft, adr[i]);
+		dm9k_iow(priv, oft, adr->addr[i]);
 	for (i = 0, oft = DM9K_MAR; i < 8; i++, oft++)
 		dm9k_iow(priv, oft, 0xff);
 

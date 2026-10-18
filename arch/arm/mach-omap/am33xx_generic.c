@@ -206,8 +206,8 @@ int am33xx_register_ethaddr(int eth_id, int mac_id)
 	mac_addr[4] = mac_lo & 0xff;
 	mac_addr[5] = (mac_lo & 0xff00) >> 8;
 
-	if (is_valid_ether_addr(mac_addr)) {
-		eth_register_ethaddr(eth_id, mac_addr);
+	if (is_valid_ether_addr((const MACaddr_t *)mac_addr)) {
+		eth_register_ethaddr(eth_id, (const MACaddr_t *)mac_addr);
 		return 0;
 	}
 

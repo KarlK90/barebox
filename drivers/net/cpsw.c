@@ -499,11 +499,11 @@ static inline void soft_reset(struct cpsw_priv *priv, void *reg)
 		dev_err(priv->dev, "reset timeout\n");
 }
 
-#define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |	\
-			 ((mac)[2] << 16) | ((mac)[3] << 24))
-#define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
+#define mac_hi(mac)	(((mac)->addr[0] << 0) | ((mac)->addr[1] << 8) |	\
+			 ((mac)->addr[2] << 16) | ((mac)->addr[3] << 24))
+#define mac_lo(mac)	(((mac)->addr[4] << 0) | ((mac)->addr[5] << 8))
 
-static int cpsw_get_hwaddr(struct eth_device *edev, unsigned char *mac)
+static int cpsw_get_hwaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	struct cpsw_slave *slave = edev->priv;
 
@@ -512,14 +512,14 @@ static int cpsw_get_hwaddr(struct eth_device *edev, unsigned char *mac)
 	return -1;
 }
 
-static int cpsw_set_hwaddr(struct eth_device *edev, const unsigned char *mac)
+static int cpsw_set_hwaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct cpsw_slave *slave = edev->priv;
 	struct cpsw_priv *priv = slave->cpsw;
 
 	dev_dbg(&slave->dev, "* %s\n", __func__);
 
-	memcpy(&priv->mac_addr, mac, sizeof(priv->mac_addr));
+	memcpy(&priv->mac_addr, mac->addr, sizeof(priv->mac_addr));
 
 	writel(mac_hi(mac), &slave->regs->sa_hi);
 	writel(mac_lo(mac), &slave->regs->sa_lo);

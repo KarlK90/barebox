@@ -403,11 +403,11 @@ static int enc28j60_miibus_write(struct mii_bus *bus, int phy_addr,
 	return 0;
 }
 
-static int enc28j60_get_ethaddr(struct eth_device *edev, unsigned char *m)
+static int enc28j60_get_ethaddr(struct eth_device *edev, MACaddr_t *m)
 {
 	struct enc28j60_net *priv = edev->priv;
 
-	memcpy(m, priv->hwaddr, ETH_ALEN);
+	memcpy(m->addr, priv->hwaddr, ETH_ALEN);
 
 	dev_dbg(&edev->dev, "getting MAC address\n");
 
@@ -418,7 +418,7 @@ static int enc28j60_get_ethaddr(struct eth_device *edev, unsigned char *m)
  * Program the hardware MAC address from dev->dev_addr.
  */
 static int enc28j60_set_ethaddr(struct eth_device *edev,
-				const unsigned char *mac_addr)
+				const MACaddr_t *mac_addr)
 {
 	int ret;
 	struct enc28j60_net *priv = edev->priv;
@@ -426,14 +426,14 @@ static int enc28j60_set_ethaddr(struct eth_device *edev,
 	if (!priv->hw_enable) {
 		dev_dbg(&edev->dev, "%s(): Setting MAC address\n", __func__);
 		/* NOTE: MAC address in ENC28J60 is byte-backward */
-		enc28j60_regb_write(priv, MAADR5, mac_addr[0]);
-		enc28j60_regb_write(priv, MAADR4, mac_addr[1]);
-		enc28j60_regb_write(priv, MAADR3, mac_addr[2]);
-		enc28j60_regb_write(priv, MAADR2, mac_addr[3]);
-		enc28j60_regb_write(priv, MAADR1, mac_addr[4]);
-		enc28j60_regb_write(priv, MAADR0, mac_addr[5]);
+		enc28j60_regb_write(priv, MAADR5, mac_addr->addr[0]);
+		enc28j60_regb_write(priv, MAADR4, mac_addr->addr[1]);
+		enc28j60_regb_write(priv, MAADR3, mac_addr->addr[2]);
+		enc28j60_regb_write(priv, MAADR2, mac_addr->addr[3]);
+		enc28j60_regb_write(priv, MAADR1, mac_addr->addr[4]);
+		enc28j60_regb_write(priv, MAADR0, mac_addr->addr[5]);
 		ret = 0;
-		memcpy(priv->hwaddr, mac_addr, ETH_ALEN);
+		memcpy(priv->hwaddr, mac_addr->addr, ETH_ALEN);
 	} else {
 		dev_err(&edev->dev, "%s() Hardware must be disabled to set "
 			"Mac address\n", __func__);
@@ -897,7 +897,7 @@ static int enc28j60_eth_open(struct eth_device *edev)
 	}
 
 	/* Update the MAC address after reset */
-	enc28j60_set_ethaddr(edev, priv->hwaddr);
+	enc28j60_set_ethaddr(edev, (const MACaddr_t *)priv->hwaddr);
 
 	enc28j60_hw_enable(priv);
 

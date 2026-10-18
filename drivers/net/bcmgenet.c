@@ -229,18 +229,18 @@ static int __bcmgenet_set_hwaddr(struct bcmgenet_eth_priv *priv)
 	return 0;
 }
 
-static int bcmgenet_set_hwaddr(struct eth_device *dev, const unsigned char *addr)
+static int bcmgenet_set_hwaddr(struct eth_device *dev, const MACaddr_t *addr)
 {
 	struct bcmgenet_eth_priv *priv = dev->priv;
 
-	memcpy(priv->addr, addr, 6);
+	memcpy(priv->addr, addr->addr, 6);
 
 	__bcmgenet_set_hwaddr(priv);
 
 	return 0;
 }
 
-static int bcmgenet_get_hwaddr(struct eth_device *edev, unsigned char *mac)
+static int bcmgenet_get_hwaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	return -1;
 }

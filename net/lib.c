@@ -15,13 +15,13 @@
 #include <net.h>
 #include <linux/ctype.h>
 
-int string_to_ethaddr(const char *str, u8 enetaddr[ETH_ALEN])
+int string_to_ethaddr(const char *str, MACaddr_t *enetaddr)
 {
 	int reg;
 	char *e;
 
 	if (!str || strlen(str) != 17) {
-		memset(enetaddr, 0, ETH_ALEN);
+		memset(enetaddr->addr, 0, ETH_ALEN);
 		return -EINVAL;
 	}
 
@@ -30,7 +30,7 @@ int string_to_ethaddr(const char *str, u8 enetaddr[ETH_ALEN])
 		return -EINVAL;
 
 	for (reg = 0; reg < ETH_ALEN; ++reg) {
-		enetaddr[reg] = simple_strtoul(str, &e, 16);
+		enetaddr->addr[reg] = simple_strtoul(str, &e, 16);
 		str = e + 1;
 	}
 

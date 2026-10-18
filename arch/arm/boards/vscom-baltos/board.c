@@ -123,7 +123,7 @@ static int baltos_read_eeprom(void)
 		mac_addr[4] = hw_param.MAC1[4];
 		mac_addr[5] = hw_param.MAC1[5];
 
-		eth_register_ethaddr(0, mac_addr);
+		eth_register_ethaddr(0, (const MACaddr_t *)mac_addr);
 
 		/* setup MAC2 */
 		mac_addr[0] = hw_param.MAC2[0];
@@ -133,7 +133,7 @@ static int baltos_read_eeprom(void)
 		mac_addr[4] = hw_param.MAC2[4];
 		mac_addr[5] = hw_param.MAC2[5];
 
-		eth_register_ethaddr(1, mac_addr);
+		eth_register_ethaddr(1, (const MACaddr_t *)mac_addr);
 	} else {
 		printf("Baltos: incorrect magic number (0x%x) "
 		       "in EEPROM\n",

@@ -59,13 +59,13 @@ static int gw54xx_devices_init(void)
 	if (dnode) {
 		client.addr = GSC_EEPROM_ADDR;
 		gsc_i2c_read(&client, 0x00, mac, 6);
-		of_eth_register_ethaddr(dnode, mac);
+		of_eth_register_ethaddr(dnode, (const MACaddr_t *)mac);
 	}
 	dnode = of_find_node_by_alias(of_get_root_node(), "ethernet1");
 	if (dnode) {
 		client.addr = GSC_EEPROM_ADDR;
 		gsc_i2c_read(&client, 0x06, mac, 6);
-		of_eth_register_ethaddr(dnode, mac);
+		of_eth_register_ethaddr(dnode, (const MACaddr_t *)mac);
 	}
 
 	/* boards before rev E don't have the external watchdog signal */

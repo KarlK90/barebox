@@ -65,7 +65,7 @@ static int cm_fx6_eeprom_init(void)
 	if (ret < 0)
 		return ret;
 
-	eth_register_ethaddr(0, mac);
+	eth_register_ethaddr(0, (const MACaddr_t *)mac);
 
 	return 0;
 }

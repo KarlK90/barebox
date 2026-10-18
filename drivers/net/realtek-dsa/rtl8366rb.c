@@ -369,7 +369,7 @@ static int rtl8366rb_set_addr(struct realtek_priv *priv)
 	u16 val;
 	int ret;
 
-	random_ether_addr(addr);
+	random_ether_addr((MACaddr_t *)addr);
 
 	dev_info(priv->dev, "set MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
 		 addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);

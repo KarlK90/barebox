@@ -47,12 +47,12 @@ static void tap_eth_halt(struct eth_device *edev)
 	/* nothing to do here */
 }
 
-static int tap_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int tap_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	return -1;
 }
 
-static int tap_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int tap_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	return 0;
 }

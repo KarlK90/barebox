@@ -638,7 +638,7 @@ static void rtl_reset_bmu(struct r8152 *tp)
 	r8152_ocp_write_byte(tp, MCU_TYPE_USB, USB_BMU_RESET, ocp_data);
 }
 
-static int r8152_read_mac(struct r8152 *tp, unsigned char *macaddr)
+static int r8152_read_mac(struct r8152 *tp, MACaddr_t *macaddr)
 {
 	int ret;
 	unsigned char enetaddr[8] = {0};
@@ -647,7 +647,7 @@ static int r8152_read_mac(struct r8152 *tp, unsigned char *macaddr)
 	if (ret < 0)
 		return ret;
 
-	memcpy(macaddr, enetaddr, ETH_ALEN);
+	memcpy(macaddr->addr, enetaddr, ETH_ALEN);
 	return 0;
 }
 
@@ -1438,7 +1438,7 @@ static int r8152_init_mii(struct usbnet *dev)
 	return mdiobus_register(&dev->miibus);
 }
 
-static int r8152_write_hwaddr(struct eth_device *edev, const unsigned char *adr)
+static int r8152_write_hwaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	struct usbnet *dev = container_of(edev, struct usbnet, edev);
 	struct r8152 *tp = r8152_get_priv(dev);
@@ -1446,14 +1446,14 @@ static int r8152_write_hwaddr(struct eth_device *edev, const unsigned char *adr)
 	dev_dbg(&tp->dev->edev.dev, "** %s (%d)\n", __func__, __LINE__);
 
 	r8152_ocp_write_byte(tp, MCU_TYPE_PLA, PLA_CRWECR, CRWECR_CONFIG);
-	r8152_pla_ocp_write(tp, PLA_IDR, BYTE_EN_SIX_BYTES, ETH_ALEN, adr);
+	r8152_pla_ocp_write(tp, PLA_IDR, BYTE_EN_SIX_BYTES, ETH_ALEN, adr->addr);
 	r8152_ocp_write_byte(tp, MCU_TYPE_PLA, PLA_CRWECR, CRWECR_NORAML);
 
-	dev_dbg(&tp->dev->edev.dev, "MAC %pM\n", adr);
+	dev_dbg(&tp->dev->edev.dev, "MAC %pM\n", adr->addr);
 	return 0;
 }
 
-static int r8152_read_rom_hwaddr(struct eth_device *edev, unsigned char *adr)
+static int r8152_read_rom_hwaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct usbnet *dev = container_of(edev, struct usbnet, edev);
 	struct r8152 *tp = r8152_get_priv(dev);

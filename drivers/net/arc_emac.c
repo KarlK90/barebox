@@ -317,18 +317,18 @@ static void arc_emac_halt(struct eth_device *edev)
 	arc_reg_clr(priv, R_CTRL, EN_MASK);
 }
 
-static int arc_emac_get_ethaddr(struct eth_device *edev, unsigned char *mac)
+static int arc_emac_get_ethaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	return -1;
 }
 
-static int arc_emac_set_ethaddr(struct eth_device *edev, const unsigned char *mac)
+static int arc_emac_set_ethaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct arc_emac_priv *priv = edev->priv;
 	unsigned int addr_low, addr_hi;
 
-	addr_low = le32_to_cpu(*(__le32 *) &mac[0]);
-	addr_hi = le16_to_cpu(*(__le16 *) &mac[4]);
+	addr_low = le32_to_cpu(*(__le32 *) &mac->addr[0]);
+	addr_hi = le16_to_cpu(*(__le16 *) &mac->addr[4]);
 
 	arc_reg_set(priv, R_ADDRL, addr_low);
 	arc_reg_set(priv, R_ADDRH, addr_hi);

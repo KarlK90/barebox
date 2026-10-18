@@ -258,7 +258,7 @@ static int animeo_ip_get_macb_ethaddr(u8 *addr)
 	addr[5] = (top >> 8) & 0xff;
 
 	/* valid and not private */
-	if (is_valid_ether_addr(addr) && !(addr[0] & 0x02))
+	if (is_valid_ether_addr((const MACaddr_t *)addr) && !(addr[0] & 0x02))
 		return 0;
 
 	return -EINVAL;
@@ -269,7 +269,7 @@ static void animeo_ip_add_device_eth(void)
 	u8 enetaddr[6];
 
 	if (!animeo_ip_get_macb_ethaddr(enetaddr))
-		eth_register_ethaddr(0, enetaddr);
+		eth_register_ethaddr(0, (const MACaddr_t *)enetaddr);
 	else
 		local_mac_address_register(0, "smf");
 

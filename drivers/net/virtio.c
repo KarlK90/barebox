@@ -129,16 +129,16 @@ static void virtio_net_stop(struct eth_device *dev)
 	 */
 }
 
-static int virtio_net_read_rom_hwaddr(struct eth_device *edev, unsigned char *adr)
+static int virtio_net_read_rom_hwaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct virtio_net_priv *priv = to_priv(edev);
 
-	virtio_cread_bytes(priv->vdev, offsetof(struct virtio_net_config, mac), adr, 6);
+	virtio_cread_bytes(priv->vdev, offsetof(struct virtio_net_config, mac), adr->addr, ETH_ALEN);
 
 	return 0;
 }
 
-static int virtio_net_write_hwaddr(struct eth_device *edev, const unsigned char *adr)
+static int virtio_net_write_hwaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	struct virtio_net_priv *priv = to_priv(edev);
 	int i, ret;
@@ -148,20 +148,20 @@ static int virtio_net_write_hwaddr(struct eth_device *edev, const unsigned char 
 	 * which we don't support for now.
 	 */
 	if (virtio_has_feature(priv->vdev, VIRTIO_F_VERSION_1)) {
-		char mac[6];
+		MACaddr_t mac;
 
-		ret = virtio_net_read_rom_hwaddr(edev, mac);
+		ret = virtio_net_read_rom_hwaddr(edev, &mac);
 		if (ret)
 			return ret;
 
-		if (!memcmp(mac, adr, 5))
+		if (!memcmp(mac.addr, adr->addr, ETH_ALEN - 1))
 			return 0;
 		else
 			return -ENOSYS;
 	}
 
-	for (i = 0; i < 6; i++)
-		virtio_cwrite8(priv->vdev, offsetof(struct virtio_net_config, mac) + i, adr[i]);
+	for (i = 0; i < ETH_ALEN; i++)
+		virtio_cwrite8(priv->vdev, offsetof(struct virtio_net_config, mac) + i, adr->addr[i]);
 
 	return 0;
 }

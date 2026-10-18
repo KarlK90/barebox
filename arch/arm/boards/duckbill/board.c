@@ -40,7 +40,7 @@ static void duckbill_get_ethaddr(void)
 	mac[4] = mac_ocotp[1];
 	mac[5] = mac_ocotp[0];
 
-	eth_register_ethaddr(0, mac);
+	eth_register_ethaddr(0, (const MACaddr_t *)mac);
 }
 
 static struct fsl_usb2_platform_data usb_pdata = {

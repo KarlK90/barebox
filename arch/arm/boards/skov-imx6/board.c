@@ -29,7 +29,7 @@ static int eth_of_fixup_node(struct device_node *root, const char *node_path,
 	struct device_node *node;
 	int ret;
 
-	if (!is_valid_ether_addr(ethaddr)) {
+	if (!is_valid_ether_addr((const MACaddr_t *)ethaddr)) {
 		dev_err(skov_priv->dev, "The mac-address %pM is invalid.\n", ethaddr);
 		return -EINVAL;
 	}
@@ -61,7 +61,7 @@ static int eth_of_fixup_node_from_eth_device(struct device_node *root,
 		return -ENOENT;
 	}
 
-	return eth_of_fixup_node(root, node_path, edev->ethaddr);
+	return eth_of_fixup_node(root, node_path, edev->ethaddr.addr);
 }
 
 static int get_mac_address_from_env_variable(const char *env, u8 ethaddr[ETH_ALEN])
@@ -75,7 +75,7 @@ static int get_mac_address_from_env_variable(const char *env, u8 ethaddr[ETH_ALE
 		return -ENOENT;
 	}
 
-	ret = string_to_ethaddr(ethaddr_str, ethaddr);
+	ret = string_to_ethaddr(ethaddr_str, (MACaddr_t *)ethaddr);
 	if (ret < 0) {
 		dev_err(skov_priv->dev, "Could not convert \"%s\" in state variable %s into mac-address.\n",
 		        ethaddr_str, env);
@@ -569,9 +569,9 @@ static int skov_set_switch_lan2_mac(struct skov_imx6_priv *priv)
 	int ret;
 
 	ret = get_mac_address_from_env_variable("state.ethaddr.eth2", ethaddr);
-	if (ret || !is_valid_ether_addr(ethaddr)) {
+	if (ret || !is_valid_ether_addr((const MACaddr_t *)ethaddr)) {
 		ret = get_default_mac_address_from_state_node(state, ethaddr);
-		if (ret || !is_valid_ether_addr(ethaddr)) {
+		if (ret || !is_valid_ether_addr((const MACaddr_t *)ethaddr)) {
 			dev_err(priv->dev, "can't get MAC for LAN2\n");
 			return -ENODEV;
 		}
@@ -583,7 +583,7 @@ static int skov_set_switch_lan2_mac(struct skov_imx6_priv *priv)
 		return -ENODEV;
 	}
 
-	of_eth_register_ethaddr(lan2_np, ethaddr);
+	of_eth_register_ethaddr(lan2_np, (const MACaddr_t *)ethaddr);
 
 	return 0;
 }

@@ -24,7 +24,7 @@ struct macb_platform_data {
 	unsigned int flags;
 	int phy_addr;
 	phy_interface_t phy_interface;
-	int (*get_ethaddr)(struct eth_device*, unsigned char *adr);
+	int (*get_ethaddr)(struct eth_device*, MACaddr_t *adr);
 };
 
 #endif

@@ -142,16 +142,16 @@ static void efi_snp_eth_halt(struct eth_device *edev)
 	priv->snp->stop(priv->snp);
 }
 
-static int efi_snp_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int efi_snp_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct efi_snp_priv *priv = to_priv(edev);
 
-	memcpy(adr, priv->snp->Mode->PermanentAddress.Addr, 6);
+	memcpy(adr->addr, priv->snp->Mode->PermanentAddress.Addr, 6);
 
 	return 0;
 }
 
-static int efi_snp_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int efi_snp_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	return 0;
 }

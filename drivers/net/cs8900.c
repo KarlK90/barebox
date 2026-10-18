@@ -318,27 +318,27 @@ static void cs8900_halt(struct eth_device *dev)
 	cs8900_iow(priv, PP_REG_RXCFG, 0);
 }
 
-static int cs8900_get_ethaddr(struct eth_device *dev, unsigned char *mac)
+static int cs8900_get_ethaddr(struct eth_device *dev, MACaddr_t *mac)
 {
 	struct cs8900_priv *priv = (struct cs8900_priv *)dev->priv;
 	int i;
 	for (i = 0; i < 6 / 2; i++) {
 		u16 v;
 		v = cs8900_ior(priv, PP_AF_IA + i * 2);
-		mac[i * 2] = v & 0xFF;
-		mac[i * 2 + 1] = v >> 8;
+		mac->addr[i * 2] = v & 0xFF;
+		mac->addr[i * 2 + 1] = v >> 8;
 	}
 
 	return 0;
 }
 
-static int cs8900_set_ethaddr(struct eth_device *dev, const unsigned char *mac)
+static int cs8900_set_ethaddr(struct eth_device *dev, const MACaddr_t *mac)
 {
 	struct cs8900_priv *priv = (struct cs8900_priv *)dev->priv;
 	int i;
 	for (i = 0; i < 6 / 2; i++) {
 		u16 v;
-		v = (mac[i * 2 + 1] << 8) | mac[i * 2];
+		v = (mac->addr[i * 2 + 1] << 8) | mac->addr[i * 2];
 		cs8900_iow(priv, PP_AF_IA + i * 2, v);
 	}
 	return 0;

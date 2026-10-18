@@ -46,8 +46,8 @@ struct eth_device {
 	int  (*send) (struct eth_device*, void *packet, int length);
 	void (*recv) (struct eth_device*);
 	void (*halt) (struct eth_device*);
-	int  (*get_ethaddr) (struct eth_device*, u8 adr[6]);
-	int  (*set_ethaddr) (struct eth_device*, const unsigned char *adr);
+	int  (*get_ethaddr) (struct eth_device*, MACaddr_t *adr);
+	int  (*set_ethaddr) (struct eth_device*, const MACaddr_t *adr);
 	int  (*rx_preprocessor) (struct eth_device*, unsigned char **packet,
 				 int *length);
 	void (*rx_monitor) (struct eth_device*, void *packet, int length);
@@ -68,7 +68,7 @@ struct eth_device {
 
 	IPaddr_t ipaddr;
 	IPaddr_t netmask;
-	char ethaddr[6];
+	MACaddr_t ethaddr;
 	char *bootarg;
 	char *linuxdevname;
 
@@ -108,7 +108,7 @@ static inline int eth_send_raw(struct eth_device *edev, void *packet,
 
 int eth_register(struct eth_device* dev);    /* Register network device		*/
 void eth_unregister(struct eth_device* dev); /* Unregister network device	*/
-int eth_set_ethaddr(struct eth_device *edev, const char *ethaddr);
+int eth_set_ethaddr(struct eth_device *edev, const MACaddr_t *ethaddr);
 int eth_carrier_poll_once(struct eth_device *edev);
 int eth_open(struct eth_device *edev);
 void eth_close(struct eth_device *edev);
@@ -123,16 +123,16 @@ int eth_set_promisc(struct eth_device *edev, bool enable);
  * place.
  */
 #if !defined(CONFIG_NET)
-static inline void eth_register_ethaddr(int ethid, const char *ethaddr)
+static inline void eth_register_ethaddr(int ethid, const MACaddr_t *ethaddr)
 {
 }
 static inline void of_eth_register_ethaddr(struct device_node *node,
-		const char *ethaddr)
+		const MACaddr_t *ethaddr)
 {
 }
 #else
-void eth_register_ethaddr(int ethid, const char *ethaddr);
-void of_eth_register_ethaddr(struct device_node *node, const char *ethaddr);
+void eth_register_ethaddr(int ethid, const MACaddr_t *ethaddr);
+void of_eth_register_ethaddr(struct device_node *node, const MACaddr_t *ethaddr);
 #endif
 
 #ifdef CONFIG_OFTREE
@@ -364,7 +364,7 @@ int string_to_ip(const char *s, IPaddr_t *ip);
 IPaddr_t getenv_ip(const char *name);
 int setenv_ip(const char *name, IPaddr_t ip);
 
-int string_to_ethaddr(const char *str, u8 enetaddr[6]);
+int string_to_ethaddr(const char *str, MACaddr_t *enetaddr);
 
 #ifdef CONFIG_NET_RESOLV
 int resolv(const char *host, IPaddr_t *ip);
@@ -381,9 +381,10 @@ static inline int resolv(const char *host, IPaddr_t *ip)
  *
  * Return true if the address is all zeroes.
  */
-static inline int is_zero_ether_addr(const u8 *addr)
+static inline int is_zero_ether_addr(const MACaddr_t *addr)
 {
-	return !(addr[0] | addr[1] | addr[2] | addr[3] | addr[4] | addr[5]);
+	const u8 *a = addr->addr;
+	return !(a[0] | a[1] | a[2] | a[3] | a[4] | a[5]);
 }
 
 /**
@@ -393,9 +394,9 @@ static inline int is_zero_ether_addr(const u8 *addr)
  * Return true if the address is a multicast address.
  * By definition the broadcast address is also a multicast address.
  */
-static inline int is_multicast_ether_addr(const u8 *addr)
+static inline int is_multicast_ether_addr(const MACaddr_t *addr)
 {
-	return (0x01 & addr[0]);
+	return (0x01 & addr->addr[0]);
 }
 
 /**
@@ -404,9 +405,9 @@ static inline int is_multicast_ether_addr(const u8 *addr)
  *
  * Return true if the address is a local address.
  */
-static inline int is_local_ether_addr(const u8 *addr)
+static inline int is_local_ether_addr(const MACaddr_t *addr)
 {
-	return (0x02 & addr[0]);
+	return (0x02 & addr->addr[0]);
 }
 
 /**
@@ -415,16 +416,16 @@ static inline int is_local_ether_addr(const u8 *addr)
  *
  * Return true if the address is the broadcast address.
  */
-static inline int is_broadcast_ether_addr(const u8 *addr)
+static inline int is_broadcast_ether_addr(const MACaddr_t *addr)
 {
-	return (addr[0] & addr[1] & addr[2] & addr[3] & addr[4] & addr[5]) == 0xff;
+	const u8 *a = addr->addr;
+	return (a[0] & a[1] & a[2] & a[3] & a[4] & a[5]) == 0xff;
 }
 
-#define ETH_ALEN	6	/* Octets in an Ethernet address */
 #define ETH_HLEN	14	/* Total octets in header.*/
 #define ETH_FCS_LEN	4	/* Octets in the FCS */
 
-int generate_ether_addr(u8 *addr, int ethid);
+int generate_ether_addr(MACaddr_t *addr, int ethid);
 
 /**
  * random_ether_addr - Generate software assigned random Ethernet address
@@ -433,12 +434,12 @@ int generate_ether_addr(u8 *addr, int ethid);
  * Generate a random Ethernet address (MAC) that is not multicast
  * and has the local assigned bit set.
  */
-static inline void random_ether_addr(u8 *addr)
+static inline void random_ether_addr(MACaddr_t *addr)
 {
 	clocksource_srand();
-	get_noncrypto_bytes(addr, ETH_ALEN);
-	addr[0] &= 0xfe;	/* clear multicast bit */
-	addr[0] |= 0x02;	/* set local assignment bit (IEEE802) */
+	get_noncrypto_bytes(addr->addr, ETH_ALEN);
+	addr->addr[0] &= 0xfe;	/* clear multicast bit */
+	addr->addr[0] |= 0x02;	/* set local assignment bit (IEEE802) */
 }
 
 /**
@@ -450,7 +451,7 @@ static inline void random_ether_addr(u8 *addr)
  *
  * Return true if the address is valid.
  */
-static inline int is_valid_ether_addr(const u8 *addr)
+static inline int is_valid_ether_addr(const MACaddr_t *addr)
 {
 	/* FF:FF:FF:FF:FF:FF is a multicast address so we don't need to
 	 * explicitly check for it here. */
@@ -463,13 +464,13 @@ static inline int is_valid_ether_addr(const u8 *addr)
  *
  * Return a u64 value of the address
  */
-static inline u64 ether_addr_to_u64(const u8 *addr)
+static inline u64 ether_addr_to_u64(const MACaddr_t *addr)
 {
 	u64 u = 0;
 	int i;
 
 	for (i = 0; i < ETH_ALEN; i++)
-		u = u << 8 | addr[i];
+		u = u << 8 | addr->addr[i];
 
 	return u;
 }
@@ -479,12 +480,12 @@ static inline u64 ether_addr_to_u64(const u8 *addr)
  * @u: u64 to convert to an Ethernet MAC address
  * @addr: Pointer to a six-byte array to contain the Ethernet address
  */
-static inline void u64_to_ether_addr(u64 u, u8 *addr)
+static inline void u64_to_ether_addr(u64 u, MACaddr_t *addr)
 {
 	int i;
 
 	for (i = ETH_ALEN - 1; i >= 0; i--) {
-		addr[i] = u & 0xff;
+		addr->addr[i] = u & 0xff;
 		u = u >> 8;
 	}
 }
@@ -494,7 +495,7 @@ static inline void u64_to_ether_addr(u64 u, u8 *addr)
  *
  * @addr: Pointer to a six-byte array containing Ethernet address to decrement
  */
-static inline void eth_addr_dec(u8 *addr)
+static inline void eth_addr_dec(MACaddr_t *addr)
 {
 	u64 u = ether_addr_to_u64(addr);
 
@@ -506,7 +507,7 @@ static inline void eth_addr_dec(u8 *addr)
  * eth_addr_inc() - Increment the given MAC address.
  * @addr: Pointer to a six-byte array containing Ethernet address to increment.
  */
-static inline void eth_addr_inc(u8 *addr)
+static inline void eth_addr_inc(MACaddr_t *addr)
 {
 	u64 u = ether_addr_to_u64(addr);
 
@@ -520,7 +521,7 @@ static inline void eth_addr_inc(u8 *addr)
  * @offset: Offset to add.
  * @addr: Pointer to a six-byte array containing Ethernet address to increment.
  */
-static inline void eth_addr_add(u8 *addr, long offset)
+static inline void eth_addr_add(MACaddr_t *addr, long offset)
 {
 	u64 u = ether_addr_to_u64(addr);
 
@@ -616,7 +617,7 @@ extern struct class eth_class;
 
 struct eth_ethaddr {
 	struct list_head list;
-	u8 ethaddr[ETH_ALEN];
+	MACaddr_t ethaddr;
 	int ethid;
 	struct device_node *node;
 };

@@ -209,12 +209,12 @@ static void enetc_start_pcs(struct eth_device *edev)
 					 + (pf) * 0x100 + (vf) * 8)
 #define LS1028A_IERB_PSIPMAR1(pf, vf)	(LS1028A_IERB_PSIPMAR0(pf, vf) + 4)
 
-static int enetc_get_hwaddr(struct eth_device *edev, unsigned char *mac)
+static int enetc_get_hwaddr(struct eth_device *edev, MACaddr_t *mac)
 {
         return -EOPNOTSUPP;
 }
 
-static int enetc_ls1028a_write_hwaddr(struct eth_device *edev, const unsigned char *mac)
+static int enetc_ls1028a_write_hwaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct enetc_priv *priv = edev->priv;
 	struct pci_dev *pdev = to_pci_dev(priv->dev);
@@ -230,8 +230,8 @@ static int enetc_ls1028a_write_hwaddr(struct eth_device *edev, const unsigned ch
 	if (pf < 0)
 		return 0;
 
-	lower = get_unaligned_le16(mac + 4);
-	upper = get_unaligned_le32(mac);
+	lower = get_unaligned_le16(mac->addr + 4);
+	upper = get_unaligned_le32(mac->addr);
 
 	out_le32(LS1028A_IERB_PSIPMAR0(pf, 0), upper);
 	out_le32(LS1028A_IERB_PSIPMAR1(pf, 0), lower);
@@ -239,12 +239,12 @@ static int enetc_ls1028a_write_hwaddr(struct eth_device *edev, const unsigned ch
 	return 0;
 }
 
-static int enetc_write_hwaddr(struct eth_device *edev, const unsigned char *mac)
+static int enetc_write_hwaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct enetc_priv *priv = edev->priv;
 
-	u16 lower = get_unaligned_le16(mac + 4);
-	u32 upper = get_unaligned_le32(mac);
+	u16 lower = get_unaligned_le16(mac->addr + 4);
+	u32 upper = get_unaligned_le32(mac->addr);
 
 	enetc_write_port(priv, ENETC_PSIPMAR0, upper);
 	enetc_write_port(priv, ENETC_PSIPMAR1, lower);

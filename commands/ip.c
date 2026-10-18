@@ -22,7 +22,7 @@ static int do_ip_link(int argc, char *argv[])
 			   phy_status);
 
 		printf("	link/ether %pM brd ff:ff:ff:ff:ff:ff\n",
-		       edev->ethaddr);
+		       edev->ethaddr.addr);
 	}
 
 	return 0;
@@ -43,7 +43,7 @@ static int do_ip_addr(int argc, char *argv[])
 		       edev->active ? "UP" : "DOWN", phy_status);
 
 		printf("	link/ether %pM brd ff:ff:ff:ff:ff:ff\n",
-		       edev->ethaddr);
+		       edev->ethaddr.addr);
 
 		if (ipaddr) {
 			printf("	inet %pI4/%d scope global src %pI4\n",

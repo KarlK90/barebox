@@ -118,10 +118,10 @@ ar231x_cksum16(u8 *data, int size)
 static void
 ar231x_check_mac(u8 *addr)
 {
-	if (!is_valid_ether_addr(addr)) {
+	if (!is_valid_ether_addr((const MACaddr_t *)addr)) {
 		pr_warn("config: no valid mac was found. "
 				"Generating random mac: ");
-		random_ether_addr(addr);
+		random_ether_addr((MACaddr_t *)addr);
 		ar231x_print_mac(addr);
 	}
 }

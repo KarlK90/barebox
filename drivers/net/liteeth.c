@@ -256,13 +256,13 @@ static void liteeth_reset_hw(struct liteeth *priv)
 	udelay(10);
 }
 
-static int liteeth_get_ethaddr(struct eth_device *edev, unsigned char *m)
+static int liteeth_get_ethaddr(struct eth_device *edev, MACaddr_t *m)
 {
 	return 0;
 }
 
 static int liteeth_set_ethaddr(struct eth_device *edev,
-					const unsigned char *mac_addr)
+					const MACaddr_t *mac_addr)
 {
 	return 0;
 }

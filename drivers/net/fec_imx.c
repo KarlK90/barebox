@@ -240,20 +240,20 @@ static void fec_rbd_clean(int last, struct buffer_descriptor __iomem *pRbd)
 	writew(0, &pRbd->data_length);
 }
 
-static int fec_get_hwaddr(struct eth_device *dev, unsigned char *mac)
+static int fec_get_hwaddr(struct eth_device *dev, MACaddr_t *mac)
 {
 	return -1;
 }
 
-static int fec_set_hwaddr(struct eth_device *dev, const unsigned char *mac)
+static int fec_set_hwaddr(struct eth_device *dev, const MACaddr_t *mac)
 {
 	struct fec_priv *fec = (struct fec_priv *)dev->priv;
 
 	/*
 	 * Set physical address
 	 */
-	writel((mac[0] << 24) + (mac[1] << 16) + (mac[2] << 8) + mac[3], fec->regs + FEC_PADDR1);
-	writel((mac[4] << 24) + (mac[5] << 16) + 0x8808, fec->regs + FEC_PADDR2);
+	writel((mac->addr[0] << 24) + (mac->addr[1] << 16) + (mac->addr[2] << 8) + mac->addr[3], fec->regs + FEC_PADDR1);
+	writel((mac->addr[4] << 24) + (mac->addr[5] << 16) + 0x8808, fec->regs + FEC_PADDR2);
 
 	return 0;
 }

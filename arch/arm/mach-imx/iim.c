@@ -433,7 +433,7 @@ static void imx_iim_init_dt(struct device *dev, struct iim_priv *iim)
 		if (ret)
 			dev_err(dev, "cannot read: %pe\n", ERR_PTR(ret));
 		else
-			of_eth_register_ethaddr(rnode, mac);
+			of_eth_register_ethaddr(rnode, (const MACaddr_t *)mac);
 
 		if (IS_ENABLED(CONFIG_NET))
 			imx_iim_add_mac_param(iim, macnum, bank, offset);

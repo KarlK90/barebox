@@ -148,11 +148,11 @@ static void prt_rk356x_board_info(void)
 			pr_warn("Unable to read MAC address from eMMC\n");
 			return;
 		}
-		if (is_valid_ether_addr(buf)) {
-			eth_register_ethaddr(0, buf);
+		if (is_valid_ether_addr((const MACaddr_t *)buf)) {
+			eth_register_ethaddr(0, (const MACaddr_t *)buf);
 			for (i = 1; i < prt_priv.model->mac_cnt; i++) {
 				prt_rk356x_inc_mac(buf);
-				eth_register_ethaddr(i, buf);
+				eth_register_ethaddr(i, (const MACaddr_t *)buf);
 			}
 		} else {
 			pr_warn("Board has invalid MAC address\n");

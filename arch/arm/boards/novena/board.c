@@ -77,7 +77,7 @@ static void novena_set_mac(struct novena_eeprom *eeprom)
 
 	dnode = of_find_node_by_alias(of_get_root_node(), "ethernet0");
 	if (dnode)
-		of_eth_register_ethaddr(dnode, eeprom->mac);
+		of_eth_register_ethaddr(dnode, (const MACaddr_t *)eeprom->mac);
 	else
 		pr_err("Unable to find ethernet node\n");
 }

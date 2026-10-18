@@ -473,35 +473,35 @@ recv_err:
 	       priv->reg + MVNETA_RXQ_STATUS_UPDATE_REG(0));
 }
 
-static int mvneta_set_ethaddr(struct eth_device *edev, const unsigned char *mac)
+static int mvneta_set_ethaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct mvneta_port *priv = edev->priv;
-	u32 mac_h = (mac[0] << 24) | (mac[1] << 16) | (mac[2] << 8) | mac[3];
-	u32 mac_l = (mac[4] << 8) | mac[5];
+	u32 mac_h = (mac->addr[0] << 24) | (mac->addr[1] << 16) | (mac->addr[2] << 8) | mac->addr[3];
+	u32 mac_l = (mac->addr[4] << 8) | mac->addr[5];
 
-	mvneta_clear_ucast_addr(priv, mac[5]);
+	mvneta_clear_ucast_addr(priv, mac->addr[5]);
 
 	writel(mac_l, priv->reg + MVNETA_MAC_ADDR_LOW);
 	writel(mac_h, priv->reg + MVNETA_MAC_ADDR_HIGH);
 
 	/* accept frames for this address */
-	mvneta_set_ucast_addr(priv, mac[5]);
+	mvneta_set_ucast_addr(priv, mac->addr[5]);
 
 	return 0;
 }
 
-static int mvneta_get_ethaddr(struct eth_device *edev, unsigned char *mac)
+static int mvneta_get_ethaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	struct mvneta_port *priv = edev->priv;
 	u32 mac_l = readl(priv->reg + MVNETA_MAC_ADDR_LOW);
 	u32 mac_h = readl(priv->reg + MVNETA_MAC_ADDR_HIGH);
 
-	mac[0] = (mac_h >> 24) & 0xff;
-	mac[1] = (mac_h >> 16) & 0xff;
-	mac[2] = (mac_h >> 8) & 0xff;
-	mac[3] = mac_h & 0xff;
-	mac[4] = (mac_l >> 8) & 0xff;
-	mac[5] = mac_l & 0xff;
+	mac->addr[0] = (mac_h >> 24) & 0xff;
+	mac->addr[1] = (mac_h >> 16) & 0xff;
+	mac->addr[2] = (mac_h >> 8) & 0xff;
+	mac->addr[3] = mac_h & 0xff;
+	mac->addr[4] = (mac_l >> 8) & 0xff;
+	mac->addr[5] = mac_l & 0xff;
 
 	return 0;
 }

@@ -78,7 +78,7 @@ static int board_eth_init(void)
 	st = owc_get_product_data(&product);
 	if (((product.v2.mac.count > 0) && (product.v2.mac.count <= MAX_MAC))
 	    && (st == 0))
-		eth_register_ethaddr(0, (const char *)&product.v2.mac.mac[0]);
+		eth_register_ethaddr(0, (const MACaddr_t *)&product.v2.mac.mac[0]);
 
 	fsl_eth_init(1, &gfar_info[0]);
 

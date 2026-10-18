@@ -150,33 +150,33 @@ static void smc911x_set_mac_csr(struct eth_device *edev, u8 reg, u32 data)
 	smc911x_mac_wait_busy(priv);
 }
 
-static int smc911x_get_ethaddr(struct eth_device *edev, unsigned char *m)
+static int smc911x_get_ethaddr(struct eth_device *edev, MACaddr_t *m)
 {
 	unsigned long addrh, addrl;
 
 	addrh = smc911x_get_mac_csr(edev, ADDRH);
 	addrl = smc911x_get_mac_csr(edev, ADDRL);
 
-	m[0] = (addrl       ) & 0xff;
-	m[1] = (addrl >>  8 ) & 0xff;
-	m[2] = (addrl >> 16 ) & 0xff;
-	m[3] = (addrl >> 24 ) & 0xff;
-	m[4] = (addrh       ) & 0xff;
-	m[5] = (addrh >>  8 ) & 0xff;
+	m->addr[0] = (addrl       ) & 0xff;
+	m->addr[1] = (addrl >>  8 ) & 0xff;
+	m->addr[2] = (addrl >> 16 ) & 0xff;
+	m->addr[3] = (addrl >> 24 ) & 0xff;
+	m->addr[4] = (addrh       ) & 0xff;
+	m->addr[5] = (addrh >>  8 ) & 0xff;
 
 	/* we get 0xff when there is no eeprom connected */
-	if ((m[0] & m[1] & m[2] & m[3] & m[4] & m[5]) == 0xff)
+	if ((m->addr[0] & m->addr[1] & m->addr[2] & m->addr[3] & m->addr[4] & m->addr[5]) == 0xff)
 		return -1;
 
 	return 0;
 }
 
-static int smc911x_set_ethaddr(struct eth_device *edev, const unsigned char *m)
+static int smc911x_set_ethaddr(struct eth_device *edev, const MACaddr_t *m)
 {
 	unsigned long addrh, addrl;
 
-	addrl = m[0] | m[1] << 8 | m[2] << 16 | m[3] << 24;
-	addrh = m[4] | m[5] << 8;
+	addrl = m->addr[0] | m->addr[1] << 8 | m->addr[2] << 16 | m->addr[3] << 24;
+	addrh = m->addr[4] | m->addr[5] << 8;
 	smc911x_set_mac_csr(edev, ADDRH, addrh);
 	smc911x_set_mac_csr(edev, ADDRL, addrl);
 

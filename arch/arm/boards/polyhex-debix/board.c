@@ -31,7 +31,7 @@ static int polyhex_debix_eth_register_ethaddr(struct device_node *np)
 	if (ret)
 		goto err;
 
-	of_eth_register_ethaddr(np, mac);
+	of_eth_register_ethaddr(np, (const MACaddr_t *)mac);
 err:
 	free(data);
 

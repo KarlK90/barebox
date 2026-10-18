@@ -837,7 +837,7 @@ static int imx_ocotp_init_dt(struct ocotp_priv *priv)
 				       mac))
 			continue;
 
-		of_eth_register_ethaddr(rnode, mac);
+		of_eth_register_ethaddr(rnode, (const MACaddr_t *)mac);
 	}
 
 	if (!of_property_read_bool(node, "barebox,feature-controller"))

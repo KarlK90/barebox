@@ -184,7 +184,7 @@ static int davinci_miibus_write(struct mii_bus *bus, int addr, int reg, u16 valu
 	return wait_for_user_access(priv, NULL);
 }
 
-static int davinci_emac_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int davinci_emac_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	return -1;
 }
@@ -193,13 +193,13 @@ static int davinci_emac_get_ethaddr(struct eth_device *edev, unsigned char *adr)
  * This function must be called before emac_open() if you want to override
  * the default mac address.
  */
-static int davinci_emac_set_ethaddr(struct eth_device *edev, const unsigned char *addr)
+static int davinci_emac_set_ethaddr(struct eth_device *edev, const MACaddr_t *addr)
 {
 	struct davinci_emac_priv *priv = edev->priv;
 	int i;
 
 	for (i = 0; i < sizeof(priv->mac_addr); i++)
-		priv->mac_addr[i] = addr[i];
+		priv->mac_addr[i] = addr->addr[i];
 	return 0;
 }
 

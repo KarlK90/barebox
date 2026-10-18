@@ -538,7 +538,7 @@ static int macb_phy_write(struct mii_bus *bus, int addr, int reg, u16 value)
 	return 0;
 }
 
-static int macb_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int macb_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct macb_device *macb = edev->priv;
 	u32 bottom;
@@ -558,8 +558,8 @@ static int macb_get_ethaddr(struct eth_device *edev, unsigned char *adr)
 		addr[4] = top & 0xff;
 		addr[5] = (top >> 8) & 0xff;
 
-		if (is_valid_ether_addr(addr)) {
-			memcpy(adr, addr, sizeof(addr));
+		if (is_valid_ether_addr((const MACaddr_t *)addr)) {
+			memcpy(adr->addr, addr, sizeof(addr));
 			return 0;
 		}
 	}
@@ -567,13 +567,13 @@ static int macb_get_ethaddr(struct eth_device *edev, unsigned char *adr)
 	return -1;
 }
 
-static int macb_set_ethaddr(struct eth_device *edev, const unsigned char *adr)
+static int macb_set_ethaddr(struct eth_device *edev, const MACaddr_t *adr)
 {
 	struct macb_device *macb = edev->priv;
 
 	/* set hardware address */
-	macb_or_gem_writel(macb, SA1B, adr[0] | adr[1] << 8 | adr[2] << 16 | adr[3] << 24);
-	macb_or_gem_writel(macb, SA1T, adr[4] | adr[5] << 8);
+	macb_or_gem_writel(macb, SA1B, adr->addr[0] | adr->addr[1] << 8 | adr->addr[2] << 16 | adr->addr[3] << 24);
+	macb_or_gem_writel(macb, SA1T, adr->addr[4] | adr->addr[5] << 8);
 
 	return 0;
 }

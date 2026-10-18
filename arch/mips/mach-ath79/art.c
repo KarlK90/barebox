@@ -31,7 +31,7 @@ static int art_set_mac(struct device *dev, struct ar9300_eeprom *eeprom)
 	if (!rnode)
 		return -ENOENT;
 
-	of_eth_register_ethaddr(rnode, &eeprom->mac_addr[0]);
+	of_eth_register_ethaddr(rnode, (const MACaddr_t *)&eeprom->mac_addr[0]);
 
 	return 0;
 }
@@ -64,7 +64,7 @@ static int art_read_mac(struct device *dev, const char *file)
 	       eeprom.mac_addr[4],
 	       eeprom.mac_addr[5]);
 
-	if (!is_valid_ether_addr(&eeprom.mac_addr[0])) {
+	if (!is_valid_ether_addr((const MACaddr_t *)&eeprom.mac_addr[0])) {
 		dev_err(dev, "bad MAC addr\n");
 		return -EILSEQ;
 	}

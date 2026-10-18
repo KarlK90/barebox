@@ -338,17 +338,17 @@ void eqos_adjust_link(struct eth_device *edev)
 	}
 }
 
-int eqos_get_ethaddr(struct eth_device *edev, unsigned char *mac)
+int eqos_get_ethaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	return -EOPNOTSUPP;
 }
 
-int eqos_set_ethaddr(struct eth_device *edev, const unsigned char *mac)
+int eqos_set_ethaddr(struct eth_device *edev, const MACaddr_t *mac)
 {
 	struct eqos *eqos = edev->priv;
 	__le32 mac_hi, mac_lo;
 
-	memcpy(eqos->macaddr, mac, ETH_ALEN);
+	memcpy(eqos->macaddr, mac->addr, ETH_ALEN);
 
 	if (!eqos->is_started)
 		return 0;
@@ -359,8 +359,8 @@ int eqos_set_ethaddr(struct eth_device *edev, const unsigned char *mac)
 	 */
 	mac_hi = 0;
 	/* Update the MAC address */
-	memcpy(&mac_hi, &mac[4], 2);
-	memcpy(&mac_lo, &mac[0], 4);
+	memcpy(&mac_hi, &mac->addr[4], 2);
+	memcpy(&mac_lo, &mac->addr[0], 4);
 
 	__raw_writel(mac_hi, &eqos->mac_regs->macaddr0hi);
 	__raw_writel(mac_lo, &eqos->mac_regs->macaddr0lo);
@@ -446,7 +446,7 @@ static int eqos_start(struct eth_device *edev)
 
 	/* Reset above clears any previously made configuration */
 	eqos->is_started = true;
-	eqos_set_ethaddr(edev, eqos->macaddr);
+	eqos_set_ethaddr(edev, (const MACaddr_t *)eqos->macaddr);
 	eqos_set_promisc(edev, eqos->promisc_enabled);
 
 	/* Required for accurate time keeping with EEE counters */

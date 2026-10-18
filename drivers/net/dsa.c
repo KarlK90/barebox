@@ -77,13 +77,13 @@ static void dsa_port_set_ethaddr(struct eth_device *edev)
 	struct dsa_port *dp = edev->priv;
 	struct dsa_switch *ds = dp->ds;
 
-	if (is_valid_ether_addr(edev->ethaddr))
+	if (is_valid_ether_addr(&edev->ethaddr))
 		return;
 
-	if (!is_valid_ether_addr(ds->edev_master->ethaddr))
+	if (!is_valid_ether_addr(&ds->edev_master->ethaddr))
 		return;
 
-	eth_set_ethaddr(edev, ds->edev_master->ethaddr);
+	eth_set_ethaddr(edev, &ds->edev_master->ethaddr);
 }
 
 static int dsa_port_start(struct eth_device *edev)
@@ -225,7 +225,7 @@ static void dsa_port_recv(struct eth_device *edev)
 }
 
 static int dsa_ether_set_ethaddr(struct eth_device *edev,
-				 const unsigned char *adr)
+				 const MACaddr_t *adr)
 {
 	struct dsa_port *dp = edev->priv;
 	struct dsa_switch *ds = dp->ds;
@@ -236,7 +236,7 @@ static int dsa_ether_set_ethaddr(struct eth_device *edev,
 	return edev_master->set_ethaddr(edev_master, adr);
 }
 
-static int dsa_ether_get_ethaddr(struct eth_device *edev, unsigned char *adr)
+static int dsa_ether_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct dsa_port *dp = edev->priv;
 	struct dsa_switch *ds = dp->ds;

@@ -1348,7 +1348,7 @@ static void smc91c111_eth_rx(struct eth_device *edev)
 	}
 }
 
-static int smc91c111_get_ethaddr(struct eth_device *edev, unsigned char *m)
+static int smc91c111_get_ethaddr(struct eth_device *edev, MACaddr_t *m)
 {
 	struct smc91c111_priv *priv = (struct smc91c111_priv *)edev->priv;
 	int valid = 0;
@@ -1357,7 +1357,7 @@ static int smc91c111_get_ethaddr(struct eth_device *edev, unsigned char *m)
 	SMC_SELECT_BANK(priv, 1);
 
 	for (i = 0; i < 6; ++i)
-		valid += m[i] = SMC_inb(priv, (ADDR0_REG + i));
+		valid += m->addr[i] = SMC_inb(priv, (ADDR0_REG + i));
 
 	/* no eeprom, no mac */
 	if (!valid)
@@ -1367,7 +1367,7 @@ static int smc91c111_get_ethaddr(struct eth_device *edev, unsigned char *m)
 }
 
 static int smc91c111_set_ethaddr(struct eth_device *edev,
-					const unsigned char *mac_addr)
+					const MACaddr_t *mac_addr)
 {
 	struct smc91c111_priv *priv = (struct smc91c111_priv *)edev->priv;
 	unsigned address;
@@ -1376,8 +1376,8 @@ static int smc91c111_set_ethaddr(struct eth_device *edev,
 	SMC_SELECT_BANK(priv, 1);
 
 	for (i = 0; i < 6; i += 2) {
-		address = mac_addr[i + 1] << 8;
-		address |= mac_addr[i];
+		address = mac_addr->addr[i + 1] << 8;
+		address |= mac_addr->addr[i];
 		SMC_outw(priv, address, (ADDR0_REG + i));
 	}
 
