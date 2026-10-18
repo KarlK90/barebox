@@ -639,12 +639,13 @@ static bool rtl_is_8168evl_up(struct rtl8169_private *tp)
 	       tp->mac_version <= RTL_GIGA_MAC_VER_53;
 }
 
-static void rtl_read_mac_from_reg(struct rtl8169_private *tp, u8 *mac, int reg)
+static void rtl_read_mac_from_reg(struct rtl8169_private *tp, MACaddr_t *mac,
+				  int reg)
 {
 	int i;
 
 	for (i = 0; i < ETH_ALEN; i++)
-		mac[i] = RTL_R8(tp, reg + i);
+		mac->addr[i] = RTL_R8(tp, reg + i);
 }
 
 struct rtl_cond {
@@ -1383,18 +1384,18 @@ static void rtl8169_init_phy(struct rtl8169_private *tp)
 	}
 }
 
-static void rtl_rar_set(struct rtl8169_private *tp, const u8 *addr)
+static void rtl_rar_set(struct rtl8169_private *tp, const MACaddr_t *addr)
 {
 	rtl_unlock_config_regs(tp);
 
-	RTL_W32(tp, MAC4, get_unaligned_le16(addr + 4));
+	RTL_W32(tp, MAC4, get_unaligned_le16(addr->addr + 4));
 	rtl_pci_commit(tp);
 
-	RTL_W32(tp, MAC0, get_unaligned_le32(addr));
+	RTL_W32(tp, MAC0, get_unaligned_le32(addr->addr));
 	rtl_pci_commit(tp);
 
 	if (tp->mac_version == RTL_GIGA_MAC_VER_34)
-		rtl_rar_exgmac_set(tp, addr);
+		rtl_rar_exgmac_set(tp, addr->addr);
 
 	rtl_lock_config_regs(tp);
 }
@@ -2775,16 +2776,16 @@ static void rtl8169_cleanup(struct rtl8169_private *tp)
 }
 
 static void rtl_read_mac_address(struct rtl8169_private *tp,
-				 u8 mac_addr[ETH_ALEN])
+				 MACaddr_t *mac_addr)
 {
 	/* Get MAC address */
 	if (rtl_is_8168evl_up(tp) && tp->mac_version != RTL_GIGA_MAC_VER_34) {
 		u32 value;
 
 		value = rtl_eri_read(tp, 0xe0);
-		put_unaligned_le32(value, mac_addr);
+		put_unaligned_le32(value, mac_addr->addr);
 		value = rtl_eri_read(tp, 0xe4);
-		put_unaligned_le16(value, mac_addr + 4);
+		put_unaligned_le16(value, mac_addr->addr + 4);
 	} else if (rtl_is_8125(tp)) {
 		rtl_read_mac_from_reg(tp, mac_addr, MAC0_BKP);
 	}
@@ -3069,15 +3070,15 @@ static int rtl8169_get_ethaddr(struct eth_device *edev, MACaddr_t *mac_addr)
 {
 	struct rtl8169_private *tp = edev->priv;
 
-	rtl_read_mac_address(tp, mac_addr->addr);
+	rtl_read_mac_address(tp, mac_addr);
 	if (is_valid_ether_addr(mac_addr))
 		return 0;
 
-	rtl_read_mac_address(tp, mac_addr->addr);
+	rtl_read_mac_address(tp, mac_addr);
 	if (is_valid_ether_addr(mac_addr))
 		return 0;
 
-	rtl_read_mac_from_reg(tp, mac_addr->addr, MAC0);
+	rtl_read_mac_from_reg(tp, mac_addr, MAC0);
 	if (is_valid_ether_addr(mac_addr))
 		return 0;
 
@@ -3088,7 +3089,7 @@ static int rtl8169_set_ethaddr(struct eth_device *edev, const MACaddr_t *mac_add
 {
 	struct rtl8169_private *tp = edev->priv;
 
-	rtl_rar_set(tp, mac_addr->addr);
+	rtl_rar_set(tp, mac_addr);
 
 	return 0;
 }

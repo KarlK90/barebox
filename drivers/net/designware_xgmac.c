@@ -223,7 +223,7 @@ static int xgmac_write_hwaddr(struct eth_device *edev, const MACaddr_t *mac)
 	struct xgmac_priv *xgmac = to_xgmac(edev);
 	u32 val;
 
-	memcpy(xgmac->macaddr, mac->addr, ETH_ALEN);
+	xgmac->macaddr = *mac;
 
 	/*
 	 * This function may be called before start() or after stop(). At that
@@ -246,13 +246,13 @@ static int xgmac_write_hwaddr(struct eth_device *edev, const MACaddr_t *mac)
 		return 0;
 
 	/* Update the MAC address */
-	val = (xgmac->macaddr[5] << 8) |
-		(xgmac->macaddr[4]);
+	val = (xgmac->macaddr.addr[5] << 8) |
+		(xgmac->macaddr.addr[4]);
 	writel(val, &xgmac->mac_regs->address0_high);
-	val = (xgmac->macaddr[3] << 24) |
-		(xgmac->macaddr[2] << 16) |
-		(xgmac->macaddr[1] << 8) |
-		(xgmac->macaddr[0]);
+	val = (xgmac->macaddr.addr[3] << 24) |
+		(xgmac->macaddr.addr[2] << 16) |
+		(xgmac->macaddr.addr[1] << 8) |
+		(xgmac->macaddr.addr[0]);
 	writel(val, &xgmac->mac_regs->address0_low);
 	return 0;
 }
@@ -266,7 +266,7 @@ static int xgmac_read_rom_hwaddr(struct eth_device *edev, MACaddr_t *mac)
 	if (ret < 0)
 		return ret;
 
-	if (is_valid_ether_addr((const MACaddr_t *)xgmac->macaddr))
+	if (is_valid_ether_addr(&xgmac->macaddr))
 		return 0;
 
 	return -EINVAL;

@@ -543,7 +543,7 @@ static int macb_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 	struct macb_device *macb = edev->priv;
 	u32 bottom;
 	u16 top;
-	u8 addr[6];
+	MACaddr_t addr;
 	int i;
 
 	/* Check all 4 address register for vaild address */
@@ -551,15 +551,15 @@ static int macb_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 		bottom = macb_or_gem_readl(macb, SA1B + i * 8);
 		top = macb_or_gem_readl(macb, SA1T + i * 8);
 
-		addr[0] = bottom & 0xff;
-		addr[1] = (bottom >> 8) & 0xff;
-		addr[2] = (bottom >> 16) & 0xff;
-		addr[3] = (bottom >> 24) & 0xff;
-		addr[4] = top & 0xff;
-		addr[5] = (top >> 8) & 0xff;
+		addr.addr[0] = bottom & 0xff;
+		addr.addr[1] = (bottom >> 8) & 0xff;
+		addr.addr[2] = (bottom >> 16) & 0xff;
+		addr.addr[3] = (bottom >> 24) & 0xff;
+		addr.addr[4] = top & 0xff;
+		addr.addr[5] = (top >> 8) & 0xff;
 
-		if (is_valid_ether_addr((const MACaddr_t *)addr)) {
-			memcpy(adr->addr, addr, sizeof(addr));
+		if (is_valid_ether_addr(&addr)) {
+			*adr = addr;
 			return 0;
 		}
 	}

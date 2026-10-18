@@ -365,23 +365,24 @@ static int rtl8366rb_irq_setup(struct realtek_priv *priv)
 
 static int rtl8366rb_set_addr(struct realtek_priv *priv)
 {
-	u8 addr[ETH_ALEN];
+	MACaddr_t addr;
 	u16 val;
 	int ret;
 
-	random_ether_addr((MACaddr_t *)addr);
+	random_ether_addr(&addr);
 
 	dev_info(priv->dev, "set MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
-		 addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-	val = addr[0] << 8 | addr[1];
+		 addr.addr[0], addr.addr[1], addr.addr[2], addr.addr[3],
+		 addr.addr[4], addr.addr[5]);
+	val = addr.addr[0] << 8 | addr.addr[1];
 	ret = regmap_write(priv->map, RTL8366RB_SMAR0, val);
 	if (ret)
 		return ret;
-	val = addr[2] << 8 | addr[3];
+	val = addr.addr[2] << 8 | addr.addr[3];
 	ret = regmap_write(priv->map, RTL8366RB_SMAR1, val);
 	if (ret)
 		return ret;
-	val = addr[4] << 8 | addr[5];
+	val = addr.addr[4] << 8 | addr.addr[5];
 	ret = regmap_write(priv->map, RTL8366RB_SMAR2, val);
 	if (ret)
 		return ret;

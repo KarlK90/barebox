@@ -172,7 +172,7 @@ static int ar231x_eth_init(struct eth_device *edev)
 
 	ar231x_allocate_dma_descriptors(edev);
 	ar231x_reset_regs(edev);
-	ar231x_set_ethaddr(edev, (const MACaddr_t *)priv->mac);
+	ar231x_set_ethaddr(edev, &priv->mac);
 	return 0;
 }
 
@@ -287,7 +287,7 @@ static int ar231x_get_ethaddr(struct eth_device *edev, MACaddr_t *addr)
 
 	/* MAC address is stored on flash, in some kind of atheros config
 	 * area. Platform code should read it and pass to the driver. */
-	memcpy(addr->addr, priv->mac, 6);
+	memcpy(addr->addr, priv->mac.addr, ETH_ALEN);
 	return 0;
 }
 
@@ -377,7 +377,7 @@ static int ar231x_eth_probe(struct device *dev)
 	edev->priv = priv;
 
 	/* link all platform depended regs */
-	priv->mac = pdata->mac;
+	memcpy(priv->mac.addr, pdata->mac, ETH_ALEN);
 	priv->reset_bit = pdata->reset_bit;
 
 	iores = dev_request_mem_resource(dev, 0);

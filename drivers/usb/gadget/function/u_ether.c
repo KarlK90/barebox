@@ -64,8 +64,8 @@ struct eth_dev {
 						struct sk_buff_head *list);
 
 	bool			zlp;
-	u8			host_mac[ETH_ALEN];
-	u8			dev_mac[ETH_ALEN];
+	MACaddr_t		host_mac;
+	MACaddr_t		dev_mac;
 };
 
 /*-------------------------------------------------------------------------*/
@@ -514,12 +514,12 @@ static void gether_stop(struct eth_device *net)
 
 /*-------------------------------------------------------------------------*/
 
-static int get_ether_addr_str(u8 dev_addr[ETH_ALEN], char *str, int len)
+static int get_ether_addr_str(const MACaddr_t *dev_addr, char *str, int len)
 {
 	if (len < 18)
 		return -EINVAL;
 
-	snprintf(str, len, "%pM", dev_addr);
+	snprintf(str, len, "%pM", dev_addr->addr);
 	return 18;
 }
 
@@ -527,7 +527,7 @@ static int gether_set_ethaddr(struct eth_device *net, const MACaddr_t *mac)
 {
 	struct eth_dev *dev = net->priv;
 
-	memcpy(dev->dev_mac, mac->addr, ETH_ALEN);
+	dev->dev_mac = *mac;
 	return 0;
 }
 
@@ -535,8 +535,8 @@ static int gether_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 {
 	struct eth_dev *dev = edev->priv;
 
-	if (is_valid_ether_addr((const MACaddr_t *)dev->dev_mac)) {
-		memcpy(adr->addr, dev->dev_mac, ETH_ALEN);
+	if (is_valid_ether_addr(&dev->dev_mac)) {
+		*adr = dev->dev_mac;
 		return 0;
 	}
 
@@ -560,7 +560,7 @@ struct eth_device *gether_setup_default(void)
 	dev->qmult = QMULT_DEFAULT;
 
 	/* The device address is assigned by the net core at registration */
-	random_ether_addr((MACaddr_t *)dev->host_mac);
+	random_ether_addr(&dev->host_mac);
 
 	dev->net.priv = dev;
 
@@ -594,7 +594,8 @@ int gether_register_netdev(struct eth_device *net)
 	free(net->linuxdevname);
 	net->linuxdevname = xstrdup("usb0");
 
-	INFO(dev, "HOST MAC %pM, DEV MAC %pM\n", dev->host_mac, dev->dev_mac);
+	INFO(dev, "HOST MAC %pM, DEV MAC %pM\n",
+	     dev->host_mac.addr, dev->dev_mac.addr);
 
 	return status;
 }
@@ -616,7 +617,7 @@ int gether_get_host_addr(struct eth_device *net, char *host_addr, int len)
 	int ret;
 
 	dev = net->priv;
-	ret = get_ether_addr_str(dev->host_mac, host_addr, len);
+	ret = get_ether_addr_str(&dev->host_mac, host_addr, len);
 	if (ret + 1 < len) {
 		host_addr[ret++] = '\n';
 		host_addr[ret] = '\0';
@@ -634,7 +635,7 @@ int gether_get_host_addr_cdc(struct eth_device *net, char *host_addr, int len)
 		return -EINVAL;
 
 	dev = net->priv;
-	snprintf(host_addr, len, "%pm", dev->host_mac);
+	snprintf(host_addr, len, "%pm", dev->host_mac.addr);
 
 	return strlen(host_addr);
 }
@@ -645,7 +646,7 @@ void gether_get_host_addr_u8(struct eth_device *net, u8 host_mac[ETH_ALEN])
 	struct eth_dev *dev;
 
 	dev = net->priv;
-	memcpy(host_mac, dev->host_mac, ETH_ALEN);
+	memcpy(host_mac, dev->host_mac.addr, ETH_ALEN);
 }
 EXPORT_SYMBOL_GPL(gether_get_host_addr_u8);
 

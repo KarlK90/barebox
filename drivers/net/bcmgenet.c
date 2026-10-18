@@ -175,7 +175,7 @@ struct bcmgenet_eth_priv {
 	struct mii_bus miibus;
 	struct eth_device edev;
 	struct device *dev;
-	unsigned char addr[6];
+	MACaddr_t addr;
 };
 
 static void bcmgenet_umac_reset(struct bcmgenet_eth_priv *priv)
@@ -217,7 +217,7 @@ static void bcmgenet_umac_reset(struct bcmgenet_eth_priv *priv)
 
 static int __bcmgenet_set_hwaddr(struct bcmgenet_eth_priv *priv)
 {
-	const unsigned char *addr = priv->addr;
+	const u8 *addr = priv->addr.addr;
 	u32 reg;
 
 	reg = addr[0] << 24 | addr[1] << 16 | addr[2] << 8 | addr[3];
@@ -233,7 +233,7 @@ static int bcmgenet_set_hwaddr(struct eth_device *dev, const MACaddr_t *addr)
 {
 	struct bcmgenet_eth_priv *priv = dev->priv;
 
-	memcpy(priv->addr, addr->addr, 6);
+	priv->addr = *addr;
 
 	__bcmgenet_set_hwaddr(priv);
 

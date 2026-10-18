@@ -190,7 +190,7 @@ struct ar231x_descr {
  */
 struct ar231x_eth_priv {
 	struct ar231x_eth_platform_data *cfg;
-	u8 *mac;
+	MACaddr_t mac;
 	void __iomem *phy_regs;
 	void __iomem *eth_regs;
 	void __iomem *dma_regs;

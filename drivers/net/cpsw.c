@@ -172,7 +172,7 @@ struct cpsw_priv {
 	u32				version;
 	struct cpsw_platform_data	data;
 	int				host_port;
-	uint8_t				mac_addr[6];
+	MACaddr_t			mac_addr;
 
 	struct cpsw_regs		*regs;
 	void				*dma_regs;
@@ -244,23 +244,25 @@ DEFINE_ALE_FIELD(vlan_reg_mcast,	16,	3)
 DEFINE_ALE_FIELD(vlan_unreg_mcast,	8,	3)
 DEFINE_ALE_FIELD(vlan_member_list,	0,	3)
 
-static char ethbdaddr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+static const MACaddr_t ethbdaddr = {
+	.addr = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
+};
 
 /* The MAC address field in the ALE entry cannot be macroized as above */
-static void cpsw_ale_get_addr(u32 *ale_entry, u8 *addr)
+static void cpsw_ale_get_addr(u32 *ale_entry, MACaddr_t *addr)
 {
 	int i;
 
-	for (i = 0; i < 6; i++)
-		addr[i] = cpsw_ale_get_field(ale_entry, 40 - 8*i, 8);
+	for (i = 0; i < ETH_ALEN; i++)
+		addr->addr[i] = cpsw_ale_get_field(ale_entry, 40 - 8 * i, 8);
 }
 
-static void cpsw_ale_set_addr(u32 *ale_entry, u8 *addr)
+static void cpsw_ale_set_addr(u32 *ale_entry, const MACaddr_t *addr)
 {
 	int i;
 
-	for (i = 0; i < 6; i++)
-		cpsw_ale_set_field(ale_entry, 40 - 8*i, 8, addr[i]);
+	for (i = 0; i < ETH_ALEN; i++)
+		cpsw_ale_set_field(ale_entry, 40 - 8 * i, 8, addr->addr[i]);
 }
 
 static int cpsw_ale_read(struct cpsw_priv *priv, int idx, u32 *ale_entry)
@@ -304,13 +306,13 @@ static int cpsw_ale_match_vlan(struct cpsw_priv *priv, u16 vid)
 	return -ENOENT;
 }
 
-static int cpsw_ale_match_addr(struct cpsw_priv *priv, u8* addr)
+static int cpsw_ale_match_addr(struct cpsw_priv *priv, const MACaddr_t *addr)
 {
 	u32 ale_entry[ALE_ENTRY_WORDS];
 	int type, idx;
 
 	for (idx = 0; idx < priv->ale_entries; idx++) {
-		u8 entry_addr[6];
+		MACaddr_t entry_addr;
 
 		cpsw_ale_read(priv, idx, ale_entry);
 		type = cpsw_ale_get_entry_type(ale_entry);
@@ -318,9 +320,9 @@ static int cpsw_ale_match_addr(struct cpsw_priv *priv, u8* addr)
 		if (type != ALE_TYPE_ADDR && type != ALE_TYPE_VLAN_ADDR)
 			continue;
 
-		cpsw_ale_get_addr(ale_entry, entry_addr);
+		cpsw_ale_get_addr(ale_entry, &entry_addr);
 
-		if (memcmp(entry_addr, addr, 6) == 0)
+		if (memcmp(entry_addr.addr, addr->addr, ETH_ALEN) == 0)
 			return idx;
 	}
 
@@ -396,7 +398,7 @@ static int cpsw_ale_add_vlan(struct cpsw_priv *priv, u16 vid, int port_mask,
 	return 0;
 }
 
-static int cpsw_ale_add_ucast(struct cpsw_priv *priv, u8 *addr,
+static int cpsw_ale_add_ucast(struct cpsw_priv *priv, const MACaddr_t *addr,
 			      int port, int flags, u16 vid)
 {
 	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
@@ -427,7 +429,8 @@ static int cpsw_ale_add_ucast(struct cpsw_priv *priv, u8 *addr,
 	return 0;
 }
 
-static int cpsw_ale_add_mcast(struct cpsw_priv *priv, u8 *addr, int port_mask,
+static int cpsw_ale_add_mcast(struct cpsw_priv *priv, const MACaddr_t *addr,
+			      int port_mask,
 			      int flags, u16 vid, int mcast_state)
 {
 	u32 ale_entry[ALE_ENTRY_WORDS] = {0, 0, 0};
@@ -519,7 +522,7 @@ static int cpsw_set_hwaddr(struct eth_device *edev, const MACaddr_t *mac)
 
 	dev_dbg(&slave->dev, "* %s\n", __func__);
 
-	memcpy(&priv->mac_addr, mac->addr, sizeof(priv->mac_addr));
+	priv->mac_addr = *mac;
 
 	writel(mac_hi(mac), &slave->regs->sa_hi);
 	writel(mac_lo(mac), &slave->regs->sa_lo);
@@ -600,9 +603,9 @@ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv)
 	cpsw_ale_add_vlan(priv, slave->port_vlan, port_mask,
 			  port_mask, port_mask, 0);
 	/* add broadcast address */
-	cpsw_ale_add_mcast(priv, ethbdaddr, BIT(priv->host_port), ALE_VLAN,
+	cpsw_ale_add_mcast(priv, &ethbdaddr, BIT(priv->host_port), ALE_VLAN,
 			   slave->port_vlan, 0);
-	cpsw_ale_add_ucast(priv, priv->mac_addr, priv->host_port,
+	cpsw_ale_add_ucast(priv, &priv->mac_addr, priv->host_port,
 			   ALE_SECURE | ALE_VLAN,
 			   slave->port_vlan);
 }

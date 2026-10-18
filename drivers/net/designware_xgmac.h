@@ -272,7 +272,7 @@ struct xgmac_priv {
 	int phy_addr;
 	phy_interface_t interface;
 
-	u8 macaddr[6];
+	MACaddr_t macaddr;
 
 	u32 reg_offset, reg_shift;
 	struct xgmac_desc *tx_descs, *rx_descs;

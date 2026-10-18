@@ -196,7 +196,7 @@ static int eqos_set_ethaddr_tegra186(struct eth_device *edev, const MACaddr_t *m
 	 */
 
 	if (!edev->active) {
-		memcpy(eqos->macaddr, mac->addr, ETH_ALEN);
+		eqos->macaddr = *mac;
 		return 0;
 	}
 

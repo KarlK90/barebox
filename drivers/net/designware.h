@@ -15,7 +15,7 @@ struct dw_eth_dev {
 	struct mii_bus miibus;
 
 	void (*fix_mac_speed)(int speed);
-	u8 macaddr[6];
+	MACaddr_t macaddr;
 	u32 tx_currdescnum;
 	u32 rx_currdescnum;
 

@@ -6,6 +6,8 @@
 #ifndef __EQOS_H_
 #define __EQOS_H_
 
+#include <net.h>
+
 struct eqos;
 struct eth_device;
 
@@ -48,7 +50,7 @@ struct eqos {
 	struct eth_device netdev;
 	struct mii_bus miibus;
 
-	u8 macaddr[6];
+	MACaddr_t macaddr;
 
 	u32 tx_currdescnum, rx_currdescnum;
 

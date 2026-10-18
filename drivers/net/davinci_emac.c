@@ -57,8 +57,8 @@ struct davinci_emac_priv {
 	/* PHY-specific information */
 	phy_interface_t interface;
 
-	/* mac_addr[0] goes out on the wire first */
-	uint8_t mac_addr[6];
+	/* mac_addr.addr[0] goes out on the wire first */
+	MACaddr_t mac_addr;
 };
 
 #ifdef EMAC_HW_RAM_ADDR
@@ -196,10 +196,8 @@ static int davinci_emac_get_ethaddr(struct eth_device *edev, MACaddr_t *adr)
 static int davinci_emac_set_ethaddr(struct eth_device *edev, const MACaddr_t *addr)
 {
 	struct davinci_emac_priv *priv = edev->priv;
-	int i;
 
-	for (i = 0; i < sizeof(priv->mac_addr); i++)
-		priv->mac_addr[i] = addr->addr[i];
+	priv->mac_addr = *addr;
 	return 0;
 }
 
@@ -261,12 +259,12 @@ static int davinci_emac_open(struct eth_device *edev)
 	 * Use channel 0 only - other channels are disabled
 	 */
 	writel(0, priv->adap_emac + EMAC_MACINDEX);
-	mac_hi = (priv->mac_addr[3] << 24) |
-		 (priv->mac_addr[2] << 16) |
-		 (priv->mac_addr[1] << 8)  |
-		 (priv->mac_addr[0]);
-	mac_lo = (priv->mac_addr[5] << 8) |
-		 (priv->mac_addr[4]);
+	mac_hi = (priv->mac_addr.addr[3] << 24) |
+		 (priv->mac_addr.addr[2] << 16) |
+		 (priv->mac_addr.addr[1] << 8)  |
+		 (priv->mac_addr.addr[0]);
+	mac_lo = (priv->mac_addr.addr[5] << 8) |
+		 (priv->mac_addr.addr[4]);
 
 	writel(mac_hi, priv->adap_emac + EMAC_MACADDRHI);
 	writel(mac_lo | EMAC_MAC_ADDR_IS_VALID | EMAC_MAC_ADDR_MATCH,

@@ -210,7 +210,7 @@ static int dwc_ether_init(struct eth_device *dev)
 		return -1;
 
 	/* HW MAC address is lost during MAC reset */
-	dev->set_ethaddr(dev, (const MACaddr_t *)priv->macaddr);
+	dev->set_ethaddr(dev, &priv->macaddr);
 
 	writel(FIXEDBURST | PRIORXTX_41 | BURST_16, &dma_p->busmode);
 	writel(readl(&dma_p->opmode) | FLUSHTXFIFO | STOREFORWARD |
@@ -405,7 +405,7 @@ static int dwc_ether_set_ethaddr(struct eth_device *dev, const MACaddr_t *adr)
 	macid_hi = adr->addr[4] + (adr->addr[5] << 8);
 	writel(macid_hi, &mac_p->macaddr0hi);
 	writel(macid_lo, &mac_p->macaddr0lo);
-	memcpy(priv->macaddr, adr->addr, 6);
+	priv->macaddr = *adr;
 	return 0;
 }
 

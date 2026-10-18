@@ -18,6 +18,7 @@
 #define __MACB_H
 
 #include <linux/phy.h>
+#include <net.h>
 
 struct macb_platform_data {
 	unsigned int phy_flags;

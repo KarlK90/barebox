@@ -64,7 +64,7 @@ struct fastboot_net {
 
 	IPaddr_t host_addr;
 	u16 host_port;
-	u8 host_mac[ETH_ALEN];
+	MACaddr_t host_mac;
 	u16 sequence_number;
 	u16 last_payload_len;
 	void *last_payload;
@@ -235,7 +235,7 @@ static int fastboot_write_net(struct fastboot *fb, const char *buf,
 
 	fastboot_net_save_payload(fbn, packet_base, packet - packet_base);
 
-	memcpy(fbn->net_con->et->et_dest, fbn->host_mac, ETH_ALEN);
+	memcpy(fbn->net_con->et->et_dest, fbn->host_mac.addr, ETH_ALEN);
 	net_write_ip(&fbn->net_con->ip->daddr, fbn->host_addr);
 	fbn->net_con->udp->uh_dport = fbn->host_port;
 
@@ -412,7 +412,7 @@ static void fastboot_handler(void *ctx, char *packet, unsigned int raw_len)
 		}
 		fbn->host_addr = net_read_ip(&ip_header->saddr);
 		fbn->host_port = udp.udp->uh_sport;
-		memcpy(fbn->host_mac, eth_header->et_src, ETH_ALEN);
+		memcpy(fbn->host_mac.addr, eth_header->et_src, ETH_ALEN);
 		fastboot_net_abort(fbn);
 		/* poller just unregistered in fastboot_net_abort() */
 		ret = poller_register(&fbn->poller, "fastboot");
@@ -425,7 +425,7 @@ static void fastboot_handler(void *ctx, char *packet, unsigned int raw_len)
 	case FASTBOOT_FASTBOOT:
 		if (!is_current_connection(fbn))
 			break;
-		memcpy(fbn->host_mac, eth_header->et_src, ETH_ALEN);
+		memcpy(fbn->host_mac.addr, eth_header->et_src, ETH_ALEN);
 
 		if (ntohs(header.seq) != fbn->sequence_number) {
 			fastboot_check_retransmit(fbn, header);

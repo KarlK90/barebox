@@ -44,7 +44,7 @@ struct enc28j60_net {
 	int rxfilter;
 	u8 spi_transfer_buf[SPI_TRANSFER_BUF_LEN];
 	/* store MAC address here while hardware is in the reset state */
-	u8 hwaddr[ETH_ALEN];
+	MACaddr_t hwaddr;
 	struct mii_bus miibus;
 	void *rx_buffer;
 };
@@ -407,7 +407,7 @@ static int enc28j60_get_ethaddr(struct eth_device *edev, MACaddr_t *m)
 {
 	struct enc28j60_net *priv = edev->priv;
 
-	memcpy(m->addr, priv->hwaddr, ETH_ALEN);
+	*m = priv->hwaddr;
 
 	dev_dbg(&edev->dev, "getting MAC address\n");
 
@@ -433,7 +433,7 @@ static int enc28j60_set_ethaddr(struct eth_device *edev,
 		enc28j60_regb_write(priv, MAADR1, mac_addr->addr[4]);
 		enc28j60_regb_write(priv, MAADR0, mac_addr->addr[5]);
 		ret = 0;
-		memcpy(priv->hwaddr, mac_addr->addr, ETH_ALEN);
+		priv->hwaddr = *mac_addr;
 	} else {
 		dev_err(&edev->dev, "%s() Hardware must be disabled to set "
 			"Mac address\n", __func__);
@@ -897,7 +897,7 @@ static int enc28j60_eth_open(struct eth_device *edev)
 	}
 
 	/* Update the MAC address after reset */
-	enc28j60_set_ethaddr(edev, (const MACaddr_t *)priv->hwaddr);
+	enc28j60_set_ethaddr(edev, &priv->hwaddr);
 
 	enc28j60_hw_enable(priv);
 

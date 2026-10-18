@@ -28,7 +28,6 @@
 #define SMSC95XX_TX_OVERHEAD		(8)
 #define SMSC95XX_TX_OVERHEAD_CSUM	(12)
 
-#define ETH_ALEN 6
 #define NET_IP_ALIGN	2
 #define ETH_FRAME_LEN	1514	/* Max. octets in frame sans FCS */
 #define ETH_P_8021Q	0x8100	/* 802.1Q VLAN Extended Header  */

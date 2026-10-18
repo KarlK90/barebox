@@ -527,7 +527,7 @@ static void am65_cpsw_stop(struct eth_device *edev)
 }
 
 static int am65_cpsw_am654_get_efuse_macid(struct am65_cpsw_port *port,
-					   u8 *mac_addr)
+					   MACaddr_t *mac_addr)
 {
 	u32 mac_lo, mac_hi, offset;
 	struct regmap *syscon;
@@ -547,12 +547,12 @@ static int am65_cpsw_am654_get_efuse_macid(struct am65_cpsw_port *port,
 	regmap_read(syscon, offset, &mac_lo);
 	regmap_read(syscon, offset + 4, &mac_hi);
 
-	mac_addr[0] = (mac_hi >> 8) & 0xff;
-	mac_addr[1] = mac_hi & 0xff;
-	mac_addr[2] = (mac_lo >> 24) & 0xff;
-	mac_addr[3] = (mac_lo >> 16) & 0xff;
-	mac_addr[4] = (mac_lo >> 8) & 0xff;
-	mac_addr[5] = mac_lo & 0xff;
+	mac_addr->addr[0] = (mac_hi >> 8) & 0xff;
+	mac_addr->addr[1] = mac_hi & 0xff;
+	mac_addr->addr[2] = (mac_lo >> 24) & 0xff;
+	mac_addr->addr[3] = (mac_lo >> 16) & 0xff;
+	mac_addr->addr[4] = (mac_lo >> 8) & 0xff;
+	mac_addr->addr[5] = mac_lo & 0xff;
 
 	return 0;
 }
@@ -561,7 +561,7 @@ static int am65_cpsw_get_ethaddr(struct eth_device *edev, MACaddr_t *mac)
 {
 	struct am65_cpsw_port *port = edev_to_port(edev);
 
-	am65_cpsw_am654_get_efuse_macid(port, mac->addr);
+	am65_cpsw_am654_get_efuse_macid(port, mac);
 
 	return 0;
 }
