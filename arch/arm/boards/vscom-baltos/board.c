@@ -96,7 +96,7 @@ static int baltos_read_eeprom(void)
 	struct bsp_vs_hwparam hw_param;
 	char *buf, var_buf[32];
 	int rc;
-	unsigned char mac_addr[6];
+	MACaddr_t mac_addr;
 	uint8_t dip;
 	int mpcie_pwr_pin;
 
@@ -116,24 +116,24 @@ static int baltos_read_eeprom(void)
 
 	if (hw_param.Magic == 0xDEADBEEF) {
 		/* setup MAC1 */
-		mac_addr[0] = hw_param.MAC1[0];
-		mac_addr[1] = hw_param.MAC1[1];
-		mac_addr[2] = hw_param.MAC1[2];
-		mac_addr[3] = hw_param.MAC1[3];
-		mac_addr[4] = hw_param.MAC1[4];
-		mac_addr[5] = hw_param.MAC1[5];
+		mac_addr.addr[0] = hw_param.MAC1[0];
+		mac_addr.addr[1] = hw_param.MAC1[1];
+		mac_addr.addr[2] = hw_param.MAC1[2];
+		mac_addr.addr[3] = hw_param.MAC1[3];
+		mac_addr.addr[4] = hw_param.MAC1[4];
+		mac_addr.addr[5] = hw_param.MAC1[5];
 
-		eth_register_ethaddr(0, (const MACaddr_t *)mac_addr);
+		eth_register_ethaddr(0, &mac_addr);
 
 		/* setup MAC2 */
-		mac_addr[0] = hw_param.MAC2[0];
-		mac_addr[1] = hw_param.MAC2[1];
-		mac_addr[2] = hw_param.MAC2[2];
-		mac_addr[3] = hw_param.MAC2[3];
-		mac_addr[4] = hw_param.MAC2[4];
-		mac_addr[5] = hw_param.MAC2[5];
+		mac_addr.addr[0] = hw_param.MAC2[0];
+		mac_addr.addr[1] = hw_param.MAC2[1];
+		mac_addr.addr[2] = hw_param.MAC2[2];
+		mac_addr.addr[3] = hw_param.MAC2[3];
+		mac_addr.addr[4] = hw_param.MAC2[4];
+		mac_addr.addr[5] = hw_param.MAC2[5];
 
-		eth_register_ethaddr(1, (const MACaddr_t *)mac_addr);
+		eth_register_ethaddr(1, &mac_addr);
 	} else {
 		printf("Baltos: incorrect magic number (0x%x) "
 		       "in EEPROM\n",

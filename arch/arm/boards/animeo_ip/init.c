@@ -243,22 +243,22 @@ static void animeo_ip_phy_reset(void)
 #define MACB_SA1B	0x0098
 #define MACB_SA1T	0x009c
 
-static int animeo_ip_get_macb_ethaddr(u8 *addr)
+static int animeo_ip_get_macb_ethaddr(MACaddr_t *addr)
 {
 	u32 top, bottom;
 	void __iomem *base = IOMEM(AT91SAM9260_BASE_EMAC);
 
 	bottom = readl(base + MACB_SA1B);
 	top = readl(base + MACB_SA1T);
-	addr[0] = bottom & 0xff;
-	addr[1] = (bottom >> 8) & 0xff;
-	addr[2] = (bottom >> 16) & 0xff;
-	addr[3] = (bottom >> 24) & 0xff;
-	addr[4] = top & 0xff;
-	addr[5] = (top >> 8) & 0xff;
+	addr->addr[0] = bottom & 0xff;
+	addr->addr[1] = (bottom >> 8) & 0xff;
+	addr->addr[2] = (bottom >> 16) & 0xff;
+	addr->addr[3] = (bottom >> 24) & 0xff;
+	addr->addr[4] = top & 0xff;
+	addr->addr[5] = (top >> 8) & 0xff;
 
 	/* valid and not private */
-	if (is_valid_ether_addr((const MACaddr_t *)addr) && !(addr[0] & 0x02))
+	if (is_valid_ether_addr(addr) && !(addr->addr[0] & 0x02))
 		return 0;
 
 	return -EINVAL;
@@ -266,10 +266,10 @@ static int animeo_ip_get_macb_ethaddr(u8 *addr)
 
 static void animeo_ip_add_device_eth(void)
 {
-	u8 enetaddr[6];
+	MACaddr_t enetaddr;
 
-	if (!animeo_ip_get_macb_ethaddr(enetaddr))
-		eth_register_ethaddr(0, (const MACaddr_t *)enetaddr);
+	if (!animeo_ip_get_macb_ethaddr(&enetaddr))
+		eth_register_ethaddr(0, &enetaddr);
 	else
 		local_mac_address_register(0, "smf");
 

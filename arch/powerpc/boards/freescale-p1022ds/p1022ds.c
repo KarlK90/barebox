@@ -80,7 +80,7 @@ static void board_eth_init(void)
 {
 	struct i2c_adapter *adapter;
 	struct i2c_client client;
-	char mac[6];
+	MACaddr_t mac;
 	int ret, ix;
 
 	adapter = i2c_get_adapter(1);
@@ -90,12 +90,12 @@ static void board_eth_init(void)
 	for (ix = 0; ix < 2; ix++) {
 		int mac_offset;
 
-		mac_offset = 0x42 + (sizeof(mac) * ix);
-		ret = i2c_read_reg(&client, mac_offset, mac, sizeof(mac));
-		if (ret != sizeof(mac))
+		mac_offset = 0x42 + (ETH_ALEN * ix);
+		ret = i2c_read_reg(&client, mac_offset, mac.addr, ETH_ALEN);
+		if (ret != ETH_ALEN)
 			pr_err("Fail to retrieve MAC address\n");
 		else
-			eth_register_ethaddr(ix, (const MACaddr_t *)mac);
+			eth_register_ethaddr(ix, &mac);
 	}
 
 	fsl_eth_init(1, &gfar_info[0]);

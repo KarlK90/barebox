@@ -37,7 +37,7 @@ static int gw54xx_devices_init(void)
 	struct i2c_client client;
 	struct device_node *dnode;
 	u8 reg;
-	u8 mac[6];
+	MACaddr_t mac;
 
 	if (!of_machine_is_compatible("gw,imx6q-gw54xx"))
 		return 0;
@@ -58,14 +58,14 @@ static int gw54xx_devices_init(void)
 	dnode = of_find_node_by_alias(of_get_root_node(), "ethernet0");
 	if (dnode) {
 		client.addr = GSC_EEPROM_ADDR;
-		gsc_i2c_read(&client, 0x00, mac, 6);
-		of_eth_register_ethaddr(dnode, (const MACaddr_t *)mac);
+		gsc_i2c_read(&client, 0x00, mac.addr, ETH_ALEN);
+		of_eth_register_ethaddr(dnode, &mac);
 	}
 	dnode = of_find_node_by_alias(of_get_root_node(), "ethernet1");
 	if (dnode) {
 		client.addr = GSC_EEPROM_ADDR;
-		gsc_i2c_read(&client, 0x06, mac, 6);
-		of_eth_register_ethaddr(dnode, (const MACaddr_t *)mac);
+		gsc_i2c_read(&client, 0x06, mac.addr, ETH_ALEN);
+		of_eth_register_ethaddr(dnode, &mac);
 	}
 
 	/* boards before rev E don't have the external watchdog signal */

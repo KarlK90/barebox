@@ -24,7 +24,8 @@
 static void set_mac_addr(void)
 {
 	uint32_t hwaddr_prefix;
-	u8 *hwaddr = NULL;
+	u8 *data;
+	MACaddr_t hwaddr;
 	struct device_node *np;
 
 	np = of_find_node_by_alias(NULL, "ethernet0");
@@ -33,25 +34,27 @@ static void set_mac_addr(void)
 		return;
 	}
 
-	hwaddr = nvmem_cell_get_and_read(np, "mac-address", ETH_ALEN);
-	if (IS_ERR(hwaddr)) {
+	data = nvmem_cell_get_and_read(np, "mac-address", ETH_ALEN);
+	if (IS_ERR(data)) {
 		pr_warn("can't read NVMEM cell\n");
 		return;
 	}
 
-	pr_debug("MAC address: %pM\n", hwaddr);
+	memcpy(hwaddr.addr, data, ETH_ALEN);
+	pr_debug("MAC address: %pM\n", hwaddr.addr);
 
 	/* check vendor prefix and set the environment variable */
-	hwaddr_prefix = (hwaddr[0] << 16) | (hwaddr[1] << 8) | (hwaddr[2]);
+	hwaddr_prefix = (hwaddr.addr[0] << 16) |
+			(hwaddr.addr[1] << 8) | hwaddr.addr[2];
 	if (hwaddr_prefix == ENCLUSTRA_PREFIX) {
-		eth_register_ethaddr(0, (const MACaddr_t *)hwaddr);
-		eth_addr_inc((MACaddr_t *)hwaddr); /* calculate 2nd, consecutive MAC address */
-		eth_register_ethaddr(1, (const MACaddr_t *)hwaddr);
+		eth_register_ethaddr(0, &hwaddr);
+		eth_addr_inc(&hwaddr); /* calculate 2nd, consecutive MAC address */
+		eth_register_ethaddr(1, &hwaddr);
 	} else {
 		pr_err("Invalid MAC address vendor prefix\n");
 	}
 
-	free(hwaddr);
+	free(data);
 }
 
 /*

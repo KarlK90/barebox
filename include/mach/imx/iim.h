@@ -36,13 +36,13 @@ static inline int imx_iim_read(unsigned int bank, int offset, void *buf,
 static inline int imx51_iim_register_fec_ethaddr(void)
 {
 	int ret;
-	u8 buf[6];
+	MACaddr_t buf;
 
-	ret = imx_iim_read(1, 9, buf, 6);
-	if (ret != 6)
+	ret = imx_iim_read(1, 9, buf.addr, ETH_ALEN);
+	if (ret != ETH_ALEN)
 		return -EINVAL;
 
-	eth_register_ethaddr(0, (const MACaddr_t *)buf);
+	eth_register_ethaddr(0, &buf);
 
 	return 0;
 }
@@ -55,13 +55,13 @@ static inline int imx53_iim_register_fec_ethaddr(void)
 static inline int imx25_iim_register_fec_ethaddr(void)
 {
 	int ret;
-	u8 buf[6];
+	MACaddr_t buf;
 
-	ret = imx_iim_read(0, 26, buf, 6);
-	if (ret != 6)
+	ret = imx_iim_read(0, 26, buf.addr, ETH_ALEN);
+	if (ret != ETH_ALEN)
 		return -EINVAL;
 
-	eth_register_ethaddr(0, (const MACaddr_t *)buf);
+	eth_register_ethaddr(0, &buf);
 
 	return 0;
 }

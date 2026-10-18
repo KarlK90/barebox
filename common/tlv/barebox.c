@@ -29,8 +29,10 @@ int tlv_handle_eth_address(struct tlv_device *dev, struct tlv_mapping *map, u16 
 		return -EINVAL;
 
 	for (i = 0; i < len / ETH_ALEN; i++) {
-		eth_register_ethaddr(i, (const MACaddr_t *)(val + i * ETH_ALEN));
-		ret = tlv_format_mac(dev, map, ETH_ALEN, val + i * ETH_ALEN);
+		const MACaddr_t *ethaddr = (const MACaddr_t *)(val + i * ETH_ALEN);
+
+		eth_register_ethaddr(i, ethaddr);
+		ret = tlv_format_mac(dev, map, ETH_ALEN, ethaddr->addr);
 		if (ret < 0)
 			return ret;
 	}
@@ -39,7 +41,7 @@ int tlv_handle_eth_address(struct tlv_device *dev, struct tlv_mapping *map, u16 
 
 int tlv_handle_eth_address_seq(struct tlv_device *dev, struct tlv_mapping *map, u16 len, const u8 *val)
 {
-	u8 eth_addr[ETH_ALEN];
+	MACaddr_t eth_addr;
 	int eth_count;
 	int ret;
 
@@ -48,11 +50,11 @@ int tlv_handle_eth_address_seq(struct tlv_device *dev, struct tlv_mapping *map, 
 	if (len != 1 + ETH_ALEN)
 		return -EINVAL;
 
-	memcpy(eth_addr, val + 1, ETH_ALEN);
+	memcpy(eth_addr.addr, val + 1, ETH_ALEN);
 
-	for (int i = 0; i < eth_count; i++, eth_addr_inc((MACaddr_t *)eth_addr)) {
-		eth_register_ethaddr(i, (const MACaddr_t *)eth_addr);
-		ret = tlv_format_mac(dev, map, ETH_ALEN, eth_addr);
+	for (int i = 0; i < eth_count; i++, eth_addr_inc(&eth_addr)) {
+		eth_register_ethaddr(i, &eth_addr);
+		ret = tlv_format_mac(dev, map, ETH_ALEN, eth_addr.addr);
 		if (ret < 0)
 			return ret;
 	}

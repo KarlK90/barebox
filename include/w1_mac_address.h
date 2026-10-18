@@ -6,6 +6,8 @@
 #ifndef __W1_MAC_ADDRESS_H__
 #define __W1_MAC_ADDRESS_H__
 
+#include <net.h>
+
 /**
  * w1_local_mac_address_register - use the first 3 byte of the id of a 1-wire
  * or 6 if no OUI provided device to provide an Ethernet address
@@ -17,7 +19,7 @@
  */
 static inline int w1_local_mac_address_register(int ethid, char * oui, char *w1_dev)
 {
-	char addr[6];
+	MACaddr_t addr;
 	const char *val;
 	u64 id;
 	int nb_oui = 0;
@@ -29,7 +31,7 @@ static inline int w1_local_mac_address_register(int ethid, char * oui, char *w1_
 		nb_oui = 3;
 
 		for (i = 0; i < nb_oui; i++)
-			addr[i] = oui[i];
+			addr.addr[i] = oui[i];
 	}
 
 	tmp = xasprintf("%s.id", w1_dev);
@@ -46,13 +48,13 @@ static inline int w1_local_mac_address_register(int ethid, char * oui, char *w1_
 		goto err;
 	}
 
-	for (i = nb_oui, shift = 40; i < 6; i++, shift -= 8)
-		addr[i] = (id >> shift) & 0xff;
+	for (i = nb_oui, shift = 40; i < ETH_ALEN; i++, shift -= 8)
+		addr.addr[i] = (id >> shift) & 0xff;
 
-	addr[0] &= 0xfe;	/* clear multicast bit */
-	addr[0] |= 0x02;	/* set local assignment bit (IEEE802) */
+	addr.addr[0] &= 0xfe;	/* clear multicast bit */
+	addr.addr[0] |= 0x02;	/* set local assignment bit (IEEE802) */
 
-	eth_register_ethaddr(ethid, (const MACaddr_t *)addr);
+	eth_register_ethaddr(ethid, &addr);
 
 err:
 	free(tmp);

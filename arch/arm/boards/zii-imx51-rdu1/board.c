@@ -198,7 +198,7 @@ static int zii_rdu1_ethernet_init(void)
 {
 	const char *mac_string;
 	struct device_node *np, *root;
-	uint8_t mac[ETH_ALEN];
+	MACaddr_t mac;
 	int ret;
 
 	if (!of_machine_is_compatible("zii,imx51-rdu1"))
@@ -216,11 +216,11 @@ static int zii_rdu1_ethernet_init(void)
 	if (!mac_string)
 		return -ENOENT;
 
-	ret = string_to_ethaddr(mac_string, (MACaddr_t *)mac);
+	ret = string_to_ethaddr(mac_string, &mac);
 	if (ret < 0)
 		return ret;
 
-	of_eth_register_ethaddr(np, (const MACaddr_t *)mac);
+	of_eth_register_ethaddr(np, &mac);
 	return 0;
 }
 /* This needs to happen only after zii_rdu1_load_config was

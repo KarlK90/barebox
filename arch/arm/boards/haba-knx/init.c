@@ -88,22 +88,22 @@ static void haba_knx_phy_reset(void)
 #define MACB_SA1B	0x0098
 #define MACB_SA1T	0x009c
 
-static int haba_ip_get_macb_ethaddr(u8 *addr)
+static int haba_ip_get_macb_ethaddr(MACaddr_t *addr)
 {
 	u32 top, bottom;
 	void __iomem *base = IOMEM(AT91SAM9260_BASE_EMAC);
 
 	bottom = readl(base + MACB_SA1B);
 	top = readl(base + MACB_SA1T);
-	addr[0] = bottom & 0xff;
-	addr[1] = (bottom >> 8) & 0xff;
-	addr[2] = (bottom >> 16) & 0xff;
-	addr[3] = (bottom >> 24) & 0xff;
-	addr[4] = top & 0xff;
-	addr[5] = (top >> 8) & 0xff;
+	addr->addr[0] = bottom & 0xff;
+	addr->addr[1] = (bottom >> 8) & 0xff;
+	addr->addr[2] = (bottom >> 16) & 0xff;
+	addr->addr[3] = (bottom >> 24) & 0xff;
+	addr->addr[4] = top & 0xff;
+	addr->addr[5] = (top >> 8) & 0xff;
 
 	/* valid and not private */
-	if (is_valid_ether_addr((const MACaddr_t *)addr) && !(addr[0] & 0x02))
+	if (is_valid_ether_addr(addr) && !(addr->addr[0] & 0x02))
 		return 0;
 
 	return -EINVAL;
@@ -114,7 +114,7 @@ static int haba_ip_get_macb_ethaddr(u8 *addr)
 
 static int haba_set_ethaddr(void)
 {
-	char addr[6];
+	MACaddr_t addr;
 	char eep_data[256];
 	int i, fd, ret;
 
@@ -128,10 +128,10 @@ static int haba_set_ethaddr(void)
 	if (ret < 0)
 		goto err_open;
 
-	for (i = 0; i < 6; i++)
-		addr[i] = eep_data[EEPROM_OFFSET+i];
+	for (i = 0; i < ETH_ALEN; i++)
+		addr.addr[i] = eep_data[EEPROM_OFFSET + i];
 
-	eth_register_ethaddr(0, (const MACaddr_t *)addr);
+	eth_register_ethaddr(0, &addr);
 
 	ret = 0;
 
@@ -146,10 +146,10 @@ err:
 
 static void haba_knx_add_device_eth(void)
 {
-	u8 enetaddr[6];
+	MACaddr_t enetaddr;
 
-	if (!haba_ip_get_macb_ethaddr(enetaddr))
-		eth_register_ethaddr(0, (const MACaddr_t *)enetaddr);
+	if (!haba_ip_get_macb_ethaddr(&enetaddr))
+		eth_register_ethaddr(0, &enetaddr);
 	else
 		haba_set_ethaddr();
 

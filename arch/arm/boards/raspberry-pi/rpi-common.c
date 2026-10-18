@@ -68,12 +68,12 @@ struct rpi_property_fixup_data {
 
 static void rpi_set_usbethaddr(void)
 {
-	u8 mac[ETH_ALEN];
+	MACaddr_t mac;
 
-	if (rpi_get_usbethaddr(mac))
+	if (rpi_get_usbethaddr(mac.addr))
 		return; /* Ignore error; not critical */
 
-	eth_register_ethaddr(0, (const MACaddr_t *)mac);
+	eth_register_ethaddr(0, &mac);
 }
 
 static void rpi_set_usbotg(const char *alias)

@@ -11,7 +11,7 @@
 
 static int rdu_eth_register_ethaddr(struct device_node *np)
 {
-	u8 mac[ETH_ALEN];
+	MACaddr_t mac;
 	u8 *data;
 	int i;
 
@@ -23,11 +23,11 @@ static int rdu_eth_register_ethaddr(struct device_node *np)
 	 * to be) byte order.
 	 */
 	for (i = 0; i < ETH_ALEN; i++)
-		mac[i] = data[ETH_ALEN - i - 1];
+		mac.addr[i] = data[ETH_ALEN - i - 1];
 
 	free(data);
 
-	of_eth_register_ethaddr(np, (const MACaddr_t *)mac);
+	of_eth_register_ethaddr(np, &mac);
 
 	return 0;
 }

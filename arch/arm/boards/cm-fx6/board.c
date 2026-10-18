@@ -51,7 +51,7 @@ static int phy_fixup(struct phy_device *phydev)
 static int cm_fx6_eeprom_init(void)
 {
 	struct cdev *cdev;
-	u8 mac[6];
+	MACaddr_t mac;
 	int ret;
 
 	if (!of_machine_is_compatible("compulab,cm-fx6"))
@@ -61,11 +61,11 @@ static int cm_fx6_eeprom_init(void)
 	if (!cdev)
 		return -ENODEV;
 
-	ret = cdev_read(cdev, mac, 6, 4, 0);
+	ret = cdev_read(cdev, mac.addr, ETH_ALEN, 4, 0);
 	if (ret < 0)
 		return ret;
 
-	eth_register_ethaddr(0, (const MACaddr_t *)mac);
+	eth_register_ethaddr(0, &mac);
 
 	return 0;
 }

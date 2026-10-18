@@ -194,20 +194,20 @@ int am33xx_register_ethaddr(int eth_id, int mac_id)
 {
 	void __iomem *mac_id_low = (void *)AM33XX_MAC_ID0_LO + mac_id * 8;
 	void __iomem *mac_id_high = (void *)AM33XX_MAC_ID0_HI + mac_id * 8;
-	uint8_t mac_addr[6];
+	MACaddr_t mac_addr;
 	uint32_t mac_hi, mac_lo;
 
 	mac_lo = readl(mac_id_low);
 	mac_hi = readl(mac_id_high);
-	mac_addr[0] = mac_hi & 0xff;
-	mac_addr[1] = (mac_hi & 0xff00) >> 8;
-	mac_addr[2] = (mac_hi & 0xff0000) >> 16;
-	mac_addr[3] = (mac_hi & 0xff000000) >> 24;
-	mac_addr[4] = mac_lo & 0xff;
-	mac_addr[5] = (mac_lo & 0xff00) >> 8;
+	mac_addr.addr[0] = mac_hi & 0xff;
+	mac_addr.addr[1] = (mac_hi & 0xff00) >> 8;
+	mac_addr.addr[2] = (mac_hi & 0xff0000) >> 16;
+	mac_addr.addr[3] = (mac_hi & 0xff000000) >> 24;
+	mac_addr.addr[4] = mac_lo & 0xff;
+	mac_addr.addr[5] = (mac_lo & 0xff00) >> 8;
 
-	if (is_valid_ether_addr((const MACaddr_t *)mac_addr)) {
-		eth_register_ethaddr(eth_id, (const MACaddr_t *)mac_addr);
+	if (is_valid_ether_addr(&mac_addr)) {
+		eth_register_ethaddr(eth_id, &mac_addr);
 		return 0;
 	}
 

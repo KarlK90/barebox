@@ -24,7 +24,8 @@
 
 static void duckbill_get_ethaddr(void)
 {
-	u8 mac_ocotp[3], mac[6];
+	u8 mac_ocotp[3];
+	MACaddr_t mac;
 	int ret;
 
 	ret = mxs_ocotp_read(mac_ocotp, 3, 0);
@@ -33,14 +34,14 @@ static void duckbill_get_ethaddr(void)
 		return;
 	}
 
-	mac[0] = 0x00;
-	mac[1] = 0x04;
-	mac[2] = 0x9f;
-	mac[3] = mac_ocotp[2];
-	mac[4] = mac_ocotp[1];
-	mac[5] = mac_ocotp[0];
+	mac.addr[0] = 0x00;
+	mac.addr[1] = 0x04;
+	mac.addr[2] = 0x9f;
+	mac.addr[3] = mac_ocotp[2];
+	mac.addr[4] = mac_ocotp[1];
+	mac.addr[5] = mac_ocotp[0];
 
-	eth_register_ethaddr(0, (const MACaddr_t *)mac);
+	eth_register_ethaddr(0, &mac);
 }
 
 static struct fsl_usb2_platform_data usb_pdata = {

@@ -19,7 +19,7 @@ struct debix_polyhex_machine_data {
 
 static int polyhex_debix_eth_register_ethaddr(struct device_node *np)
 {
-	u8 mac[ETH_ALEN];
+	MACaddr_t mac;
 	u8 *data;
 	int ret;
 
@@ -27,11 +27,11 @@ static int polyhex_debix_eth_register_ethaddr(struct device_node *np)
 	if (IS_ERR(data))
 		return PTR_ERR(data);
 
-	ret = hex2bin(mac, data, ETH_ALEN);
+	ret = hex2bin(mac.addr, data, ETH_ALEN);
 	if (ret)
 		goto err;
 
-	of_eth_register_ethaddr(np, (const MACaddr_t *)mac);
+	of_eth_register_ethaddr(np, &mac);
 err:
 	free(data);
 
