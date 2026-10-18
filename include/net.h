@@ -29,6 +29,12 @@
 /* The number of receive packet buffers */
 #define PKTBUFSRX	4
 
+#define ETH_ALEN	6	/* Octets in an Ethernet address */
+
+typedef struct {
+	u8 addr[ETH_ALEN];
+} MACaddr_t;
+
 struct device;
 
 struct eth_device {
